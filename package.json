@@ -11,7 +11,10 @@
     "start": "tsc && node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "mimamch",
+  "author": {
+    "name": "mimamch",
+    "email": "mimamch28@gmail.com"
+  },
   "license": "ISC",
   "dependencies": {
     "@adiwajshing/baileys": "^5.0.0",
@@ -20,9 +23,10 @@
     "qrcode-terminal": "^0.12.0"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com/mimamch"
   },
   "repository": {
+    "type": "git",
     "url": "git@github.com:mimamch/wa-multi-session.git"
   }
 }
