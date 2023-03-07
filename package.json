@@ -22,9 +22,6 @@
     "pino": "^8.11.0",
     "qrcode-terminal": "^0.12.0"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/mimamch"
-  },
   "repository": {
     "type": "git",
     "url": "git@github.com:mimamch/wa-multi-session.git"
