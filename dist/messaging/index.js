@@ -10,9 +10,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendTextMessage = void 0;
-const sendTextMessage = ({ session, message, jid, }) => __awaiter(void 0, void 0, void 0, function* () {
-    return session.sendMessage(jid, {
-        text: "",
+const Utils_1 = require("../Utils");
+const sendTextMessage = ({ session, message = "", phoneNumber, }) => __awaiter(void 0, void 0, void 0, function* () {
+    phoneNumber = (0, Utils_1.phoneToJid)(phoneNumber);
+    return session.sendMessage(phoneNumber, {
+        text: message,
     });
 });
 exports.sendTextMessage = sendTextMessage;

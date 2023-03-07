@@ -1,6 +1,6 @@
 import { WASocket } from "@adiwajshing/baileys";
-export declare const sendTextMessage: ({ session, message, jid, }: {
+export declare const sendTextMessage: ({ session, message, phoneNumber, }: {
     session: WASocket;
     message: string;
-    jid: string;
+    phoneNumber: string;
 }) => Promise<import("@adiwajshing/baileys").proto.WebMessageInfo | undefined>;

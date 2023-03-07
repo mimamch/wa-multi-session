@@ -1,15 +1,17 @@
 import { WASocket } from "@adiwajshing/baileys";
+import { phoneToJid } from "../Utils";
 
 export const sendTextMessage = async ({
   session,
-  message,
-  jid,
+  message = "",
+  phoneNumber,
 }: {
   session: WASocket;
   message: string;
-  jid: string;
+  phoneNumber: string;
 }) => {
-  return session.sendMessage(jid, {
-    text: "",
+  phoneNumber = phoneToJid(phoneNumber);
+  return session.sendMessage(phoneNumber, {
+    text: message,
   });
 };

@@ -1,7 +1,7 @@
 {
-  "name": "wa-multi",
-  "version": "1.0.0",
-  "description": "",
+  "name": "wa-multi-session",
+  "version": "1.0.1",
+  "description": "Multi Session Whatsapp Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -18,5 +18,11 @@
     "@hapi/boom": "^10.0.1",
     "pino": "^8.11.0",
     "qrcode-terminal": "^0.12.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "url": "git@github.com:mimamch/wa-multi-session.git"
   }
 }

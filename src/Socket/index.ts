@@ -56,6 +56,7 @@ export const startWhatsapp = async (sessionName: string) => {
       await saveCreds();
     }
   });
+  return sock;
 };
 
 export const getAllSession = (): string[] => Array.from(sessions.keys());

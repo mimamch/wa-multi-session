@@ -78,6 +78,7 @@ const startWhatsapp = (sessionName) => __awaiter(void 0, void 0, void 0, functio
             yield saveCreds();
         }
     }));
+    return sock;
 });
 exports.startWhatsapp = startWhatsapp;
 const getAllSession = () => Array.from(sessions.keys());

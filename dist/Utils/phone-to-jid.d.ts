@@ -1,2 +1,1 @@
-declare const phoneToJid: (phoneNumber: number | string) => string;
-export default phoneToJid;
+export declare const phoneToJid: (phoneNumber: number | string) => string;

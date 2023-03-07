@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.phoneToJid = void 0;
 const phoneToJid = (phoneNumber) => {
     let number = phoneNumber;
     number = number.toString().replace(/\s|[+]|[-]/gim, "");
@@ -7,4 +8,4 @@ const phoneToJid = (phoneNumber) => {
         number = number + "@s.whatsapp.net";
     return number;
 };
-exports.default = phoneToJid;
+exports.phoneToJid = phoneToJid;
