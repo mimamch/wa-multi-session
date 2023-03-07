@@ -12,8 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendTextMessage = void 0;
 const Utils_1 = require("../Utils");
 const sendTextMessage = ({ session, message = "", phoneNumber, }) => __awaiter(void 0, void 0, void 0, function* () {
+    const oldPhone = phoneNumber;
     phoneNumber = (0, Utils_1.phoneToJid)(phoneNumber);
-    return session.sendMessage(phoneNumber, {
+    const [check] = yield session.onWhatsApp(phoneNumber);
+    if (!(check === null || check === void 0 ? void 0 : check.exists)) {
+        throw new Error(`${oldPhone} is not registered on Whatsapp`);
+    }
+    return yield session.sendMessage(phoneNumber, {
         text: message,
     });
 });

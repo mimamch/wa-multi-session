@@ -35,15 +35,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSession = exports.getAllSession = exports.startWhatsapp = void 0;
+exports.getSession = exports.getAllSession = exports.deleteSession = exports.startWhatsapp = void 0;
 const baileys_1 = __importStar(require("@adiwajshing/baileys"));
 const pino_1 = __importDefault(require("pino"));
 const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const msgRetryCounterMap = {};
 const sessions = new Map();
-const startWhatsapp = (sessionName) => __awaiter(void 0, void 0, void 0, function* () {
+const startWhatsapp = (sessionId) => __awaiter(void 0, void 0, void 0, function* () {
     const logger = (0, pino_1.default)({ level: "warn" });
-    const { state, saveCreds } = yield (0, baileys_1.useMultiFileAuthState)(path_1.default.resolve("credentials", sessionName + "_credentials"));
+    const { state, saveCreds } = yield (0, baileys_1.useMultiFileAuthState)(path_1.default.resolve("wa_credentials", sessionId + "_credentials"));
     const { version, isLatest } = yield (0, baileys_1.fetchLatestBaileysVersion)();
     console.log(isLatest ? "Baileys Version Is Latest" : "Baileys Version Need Update");
     const sock = (0, baileys_1.default)({
@@ -54,7 +55,7 @@ const startWhatsapp = (sessionName) => __awaiter(void 0, void 0, void 0, functio
         msgRetryCounterMap,
         markOnlineOnConnect: false,
     });
-    sessions.set(sessionName, Object.assign({}, sock));
+    sessions.set(sessionId, Object.assign({}, sock));
     sock.ev.process((events) => __awaiter(void 0, void 0, void 0, function* () {
         if (events["connection.update"]) {
             const update = events["connection.update"];
@@ -62,11 +63,10 @@ const startWhatsapp = (sessionName) => __awaiter(void 0, void 0, void 0, functio
             if (connection === "close") {
                 if ((lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error).output.statusCode !==
                     baileys_1.DisconnectReason.loggedOut) {
-                    (0, exports.startWhatsapp)(sessionName);
+                    (0, exports.startWhatsapp)(sessionId);
                 }
                 else {
-                    //   deleteSession(name);
-                    //   startSock(name);
+                    (0, exports.deleteSession)(sessionId);
                 }
             }
             if (connection == "open") {
@@ -81,7 +81,29 @@ const startWhatsapp = (sessionName) => __awaiter(void 0, void 0, void 0, functio
     return sock;
 });
 exports.startWhatsapp = startWhatsapp;
+const deleteSession = (sessionId) => {
+    sessions.delete(sessionId);
+    const dir = path_1.default.resolve("wa_credentials", sessionId + "_credentials");
+    if (fs_1.default.existsSync(dir)) {
+        fs_1.default.rmSync(dir, { force: true, recursive: true });
+    }
+};
+exports.deleteSession = deleteSession;
 const getAllSession = () => Array.from(sessions.keys());
 exports.getAllSession = getAllSession;
 const getSession = (key) => sessions.get(key);
 exports.getSession = getSession;
+const loadSessions = () => __awaiter(void 0, void 0, void 0, function* () {
+    if (!fs_1.default.existsSync(path_1.default.resolve("wa_credentials"))) {
+        fs_1.default.mkdirSync(path_1.default.resolve("wa_credentials"));
+    }
+    fs_1.default.readdir(path_1.default.resolve("wa_credentials"), (err, dirs) => __awaiter(void 0, void 0, void 0, function* () {
+        if (err) {
+            throw err;
+        }
+        for (const dir of dirs) {
+            (0, exports.startWhatsapp)(dir.split("_")[0]);
+        }
+    }));
+});
+loadSessions();
