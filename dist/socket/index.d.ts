@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { proto, WASocket } from "@adiwajshing/baileys";
 import { MessageReceived } from "../Types";
 export declare const startWhatsapp: (sessionId?: string) => Promise<{

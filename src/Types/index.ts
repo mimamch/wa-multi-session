@@ -4,6 +4,7 @@ export interface SendMessageTypes {
   to: string | number;
   text?: string;
   sessionId: string;
+  media?: string | Buffer;
   isGroup?: boolean;
 }
 

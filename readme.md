@@ -65,6 +65,30 @@ await whatsapp.sendTextMessage({
 });
 ```
 
+Send Image
+
+```ts
+const image = fs.readFileSync("./myimage.png");
+const send = await whatsapp.sendImage({
+  sessionId: "session1",
+  to: "6281234567890",
+  text: "My Image Caption",
+  media: image, // can from URL too
+});
+```
+
+Send Video
+
+```ts
+const video = fs.readFileSync("./myvideo.mp4");
+const send = await whatsapp.sendImage({
+  sessionId: "session1",
+  to: "6281234567890",
+  text: "My Video Caption",
+  media: video, // can from URL too
+});
+```
+
 ## Configuration Usage/Examples
 
 Add Listener/Callback When Receive a Message
