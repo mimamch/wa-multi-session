@@ -43,7 +43,7 @@ Get All Session ID
 
 ```ts
 const sessions = whatsapp.getAllSession();
-// returning all session name that has been created
+// returning all session ID that has been created
 ```
 
 Get Session Data By ID
@@ -59,9 +59,19 @@ Send Text Message
 
 ```ts
 await whatsapp.sendTextMessage({
-    session: session // session data,
-    phoneNumber: "6281234567890",
-    message: "Hi There, This is Message from Server!",
+  sessionId: "mysessionid", // session ID
+  to: "6281234567890", // always add country code (ex: 62)
+  text: "Hi There, This is Message from Server!", // message you want to send
+});
+```
+
+## Configuration Usage/Examples
+
+Add Listener/Callback When Receive a Message
+
+```ts
+whatsapp.onMessageReceived((msg) => {
+  console.log(`New Message Received On Session: ${msg.sessionId} >>>`, msg);
 });
 ```
 

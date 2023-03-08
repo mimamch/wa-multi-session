@@ -1,6 +1,6 @@
 {
   "name": "wa-multi-session",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Multi Session Whatsapp Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

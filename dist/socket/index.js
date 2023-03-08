@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onMessageReceive = exports.getSession = exports.getAllSession = exports.deleteSession = exports.startWhatsapp = void 0;
+exports.onMessageReceived = exports.getSession = exports.getAllSession = exports.deleteSession = exports.startWhatsapp = void 0;
 const baileys_1 = __importStar(require("@adiwajshing/baileys"));
 const pino_1 = __importDefault(require("pino"));
 const path_1 = __importDefault(require("path"));
@@ -130,7 +130,7 @@ const checkIsAvailableCreds = (sessionId) => {
     return false;
 };
 loadSessions();
-const onMessageReceive = (listener) => {
+const onMessageReceived = (listener) => {
     callback.set("onMessageReceive", listener);
 };
-exports.onMessageReceive = onMessageReceive;
+exports.onMessageReceived = onMessageReceived;

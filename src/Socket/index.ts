@@ -115,6 +115,6 @@ const checkIsAvailableCreds = (sessionId: string): boolean => {
 
 loadSessions();
 
-export const onMessageReceive = (listener: (msg: MessageReceived) => any) => {
+export const onMessageReceived = (listener: (msg: MessageReceived) => any) => {
   callback.set("onMessageReceive", listener);
 };

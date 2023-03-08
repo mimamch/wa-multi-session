@@ -103,4 +103,4 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
 export declare const deleteSession: (sessionId: string) => void;
 export declare const getAllSession: () => string[];
 export declare const getSession: (key: string) => WASocket | undefined;
-export declare const onMessageReceive: (listener: (msg: MessageReceived) => any) => void;
+export declare const onMessageReceived: (listener: (msg: MessageReceived) => any) => void;
