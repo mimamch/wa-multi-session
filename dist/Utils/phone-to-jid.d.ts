@@ -1,1 +1,2 @@
-export declare const phoneToJid: (phoneNumber: number | string) => string;
+import { SendMessageTypes } from "../Types";
+export declare const phoneToJid: ({ to, isGroup, }: SendMessageTypes) => string;

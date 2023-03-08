@@ -17,3 +17,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./Socket"), exports);
 __exportStar(require("./Messaging"), exports);
 __exportStar(require("./Utils"), exports);
+__exportStar(require("./Types"), exports);

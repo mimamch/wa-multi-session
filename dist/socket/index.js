@@ -35,53 +35,68 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSession = exports.getAllSession = exports.deleteSession = exports.startWhatsapp = void 0;
+exports.onMessageReceive = exports.getSession = exports.getAllSession = exports.deleteSession = exports.startWhatsapp = void 0;
 const baileys_1 = __importStar(require("@adiwajshing/baileys"));
 const pino_1 = __importDefault(require("pino"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const msgRetryCounterMap = {};
 const sessions = new Map();
-const startWhatsapp = (sessionId) => __awaiter(void 0, void 0, void 0, function* () {
-    const logger = (0, pino_1.default)({ level: "warn" });
-    const { state, saveCreds } = yield (0, baileys_1.useMultiFileAuthState)(path_1.default.resolve("wa_credentials", sessionId + "_credentials"));
+const callback = new Map();
+const startWhatsapp = (sessionId = "mysession") => __awaiter(void 0, void 0, void 0, function* () {
+    if (checkIsAvailableCreds(sessionId))
+        throw new Error(`Session ID :${sessionId} is already exist, Try another Session ID.`);
+    const logger = (0, pino_1.default)({ level: "silent" });
     const { version, isLatest } = yield (0, baileys_1.fetchLatestBaileysVersion)();
-    console.log(isLatest ? "Baileys Version Is Latest" : "Baileys Version Need Update");
-    const sock = (0, baileys_1.default)({
-        version,
-        printQRInTerminal: true,
-        auth: state,
-        logger,
-        msgRetryCounterMap,
-        markOnlineOnConnect: false,
+    const startSocket = () => __awaiter(void 0, void 0, void 0, function* () {
+        const { state, saveCreds } = yield (0, baileys_1.useMultiFileAuthState)(path_1.default.resolve("wa_credentials", sessionId + "_credentials"));
+        const sock = (0, baileys_1.default)({
+            version,
+            printQRInTerminal: true,
+            auth: state,
+            logger,
+            msgRetryCounterMap,
+            markOnlineOnConnect: false,
+        });
+        sessions.set(sessionId, Object.assign({}, sock));
+        sock.ev.process((events) => __awaiter(void 0, void 0, void 0, function* () {
+            var _a, _b;
+            if (events["connection.update"]) {
+                const update = events["connection.update"];
+                const { connection, lastDisconnect } = update;
+                if (connection === "close") {
+                    if ((lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error).output.statusCode !==
+                        baileys_1.DisconnectReason.loggedOut) {
+                        startSocket();
+                    }
+                    else {
+                        (0, exports.deleteSession)(sessionId);
+                    }
+                }
+                if (connection == "open") {
+                    console.log("Whatsapp Session Connected: ", sessionId);
+                }
+            }
+            if (events["creds.update"]) {
+                yield saveCreds();
+            }
+            // if (params?.onReceiveMessage && events["messages.upsert"]) {
+            //   const msg = events["messages.upsert"].messages?.[0];
+            //   params?.onReceiveMessage(msg);
+            // }
+            if (events["messages.upsert"]) {
+                const msg = (_a = events["messages.upsert"].messages) === null || _a === void 0 ? void 0 : _a[0];
+                (_b = callback.get("onMessageReceive")) === null || _b === void 0 ? void 0 : _b(Object.assign({ sessionId }, msg));
+            }
+        }));
+        return sock;
     });
-    sessions.set(sessionId, Object.assign({}, sock));
-    sock.ev.process((events) => __awaiter(void 0, void 0, void 0, function* () {
-        if (events["connection.update"]) {
-            const update = events["connection.update"];
-            const { connection, lastDisconnect } = update;
-            if (connection === "close") {
-                if ((lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error).output.statusCode !==
-                    baileys_1.DisconnectReason.loggedOut) {
-                    (0, exports.startWhatsapp)(sessionId);
-                }
-                else {
-                    (0, exports.deleteSession)(sessionId);
-                }
-            }
-            if (connection == "open") {
-            }
-            console.log("connection update", update);
-        }
-        // credentials updated -- save them
-        if (events["creds.update"]) {
-            yield saveCreds();
-        }
-    }));
-    return sock;
+    return yield startSocket();
 });
 exports.startWhatsapp = startWhatsapp;
 const deleteSession = (sessionId) => {
+    const session = (0, exports.getSession)(sessionId);
+    session === null || session === void 0 ? void 0 : session.logout();
     sessions.delete(sessionId);
     const dir = path_1.default.resolve("wa_credentials", sessionId + "_credentials");
     if (fs_1.default.existsSync(dir)) {
@@ -106,4 +121,16 @@ const loadSessions = () => __awaiter(void 0, void 0, void 0, function* () {
         }
     }));
 });
+const checkIsAvailableCreds = (sessionId) => {
+    if (fs_1.default.existsSync(path_1.default.resolve("wa_credentials")) &&
+        fs_1.default.existsSync(path_1.default.resolve("wa_credentials", sessionId + "_credentials")) &&
+        (0, exports.getSession)(sessionId)) {
+        return true;
+    }
+    return false;
+};
 loadSessions();
+const onMessageReceive = (listener) => {
+    callback.set("onMessageReceive", listener);
+};
+exports.onMessageReceive = onMessageReceive;

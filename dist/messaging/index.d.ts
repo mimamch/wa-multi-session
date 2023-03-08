@@ -1,6 +1,3 @@
-import { proto, WASocket } from "@adiwajshing/baileys";
-export declare const sendTextMessage: ({ session, message, phoneNumber, }: {
-    session: WASocket;
-    message: string;
-    phoneNumber: string;
-}) => Promise<proto.WebMessageInfo | undefined>;
+import { proto } from "@adiwajshing/baileys";
+import { SendMessageTypes } from "../Types";
+export declare const sendTextMessage: ({ sessionId, to, text, isGroup, }: SendMessageTypes) => Promise<proto.WebMessageInfo | undefined>;

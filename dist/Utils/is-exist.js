@@ -9,26 +9,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendTextMessage = void 0;
+exports.isExist = void 0;
 const Socket_1 = require("../Socket");
-const Utils_1 = require("../Utils");
-const is_exist_1 = require("../Utils/is-exist");
-const sendTextMessage = ({ sessionId, to, text = "", isGroup = false, }) => __awaiter(void 0, void 0, void 0, function* () {
-    const session = (0, Socket_1.getSession)(sessionId);
-    if (!session)
-        throw new Error(`Session with ID: ${sessionId} Not Found!`);
-    const oldPhone = to;
-    to = (0, Utils_1.phoneToJid)({ to, isGroup, sessionId });
-    const isRegistered = yield (0, is_exist_1.isExist)({
-        sessionId,
-        to,
-        isGroup,
-    });
-    if (!isRegistered) {
-        throw new Error(`${oldPhone} is not registered on Whatsapp`);
+const isExist = ({ sessionId, to, isGroup, }) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const session = (0, Socket_1.getSession)(sessionId);
+        if (!session)
+            throw new Error("Session ID Not Found!");
+        if (isGroup) {
+            return Boolean((yield session.groupMetadata(to.toString())).id);
+        }
+        else {
+            return (yield session.onWhatsApp(to.toString()))[0].exists;
+        }
     }
-    return yield session.sendMessage(to, {
-        text: text,
-    });
+    catch (error) {
+        return false;
+    }
 });
-exports.sendTextMessage = sendTextMessage;
+exports.isExist = isExist;

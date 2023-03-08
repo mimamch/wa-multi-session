@@ -1,22 +1,28 @@
 import { proto, WASocket } from "@adiwajshing/baileys";
+import { getSession } from "../Socket";
+import { SendMessageTypes } from "../Types";
 import { phoneToJid } from "../Utils";
+import { isExist } from "../Utils/is-exist";
 
 export const sendTextMessage = async ({
-  session,
-  message = "",
-  phoneNumber,
-}: {
-  session: WASocket;
-  message: string;
-  phoneNumber: string;
-}): Promise<proto.WebMessageInfo | undefined> => {
-  const oldPhone = phoneNumber;
-  phoneNumber = phoneToJid(phoneNumber);
-  const [check] = await session.onWhatsApp(phoneNumber);
-  if (!check?.exists) {
+  sessionId,
+  to,
+  text = "",
+  isGroup = false,
+}: SendMessageTypes): Promise<proto.WebMessageInfo | undefined> => {
+  const session = getSession(sessionId);
+  if (!session) throw new Error(`Session with ID: ${sessionId} Not Found!`);
+  const oldPhone = to;
+  to = phoneToJid({ to, isGroup, sessionId });
+  const isRegistered = await isExist({
+    sessionId,
+    to,
+    isGroup,
+  });
+  if (!isRegistered) {
     throw new Error(`${oldPhone} is not registered on Whatsapp`);
   }
-  return await session.sendMessage(phoneNumber, {
-    text: message,
+  return await session.sendMessage(to, {
+    text: text,
   });
 };
