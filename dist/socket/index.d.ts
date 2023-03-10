@@ -1,5 +1,6 @@
-import { proto, WASocket } from "@adiwajshing/baileys";
-import { MessageReceived } from "../Types";
+/// <reference types="node" />
+import { WASocket } from "@adiwajshing/baileys";
+import type { MessageReceived } from "../Types";
 export declare const startSession: (sessionId?: string) => Promise<{
     getOrderDetails: (orderId: string, tokenBase64: string) => Promise<import("@adiwajshing/baileys").OrderDetails>;
     getCatalog: (jid?: string | undefined, limit?: number | undefined) => Promise<{
@@ -19,17 +20,17 @@ export declare const startSession: (sessionId?: string) => Promise<{
     sendRetryRequest: (node: import("@adiwajshing/baileys").BinaryNode, forceIncludeKeys?: boolean | undefined) => Promise<void>;
     getPrivacyTokens: (jids: string[]) => Promise<import("@adiwajshing/baileys").BinaryNode>;
     assertSessions: (jids: string[], force: boolean) => Promise<boolean>;
-    relayMessage: (jid: string, message: proto.IMessage, { messageId: msgId, participant, additionalAttributes, useUserDevicesCache, cachedGroupMetadata }: import("@adiwajshing/baileys").MessageRelayOptions) => Promise<string>;
+    relayMessage: (jid: string, message: import("@adiwajshing/baileys").proto.IMessage, { messageId: msgId, participant, additionalAttributes, useUserDevicesCache, cachedGroupMetadata }: import("@adiwajshing/baileys").MessageRelayOptions) => Promise<string>;
     sendReceipt: (jid: string, participant: string | undefined, messageIds: string[], type: import("@adiwajshing/baileys").MessageReceiptType) => Promise<void>;
     sendReadReceipt: (jid: string, participant: string | undefined, messageIds: string[]) => Promise<void>;
-    readMessages: (keys: proto.IMessageKey[]) => Promise<void>;
+    readMessages: (keys: import("@adiwajshing/baileys").proto.IMessageKey[]) => Promise<void>;
     refreshMediaConn: (forceGet?: boolean | undefined) => Promise<import("@adiwajshing/baileys").MediaConnInfo>;
     waUploadToServer: import("@adiwajshing/baileys").WAMediaUploadFunction;
     fetchPrivacySettings: (force?: boolean | undefined) => Promise<{
         [_: string]: string;
     }>;
-    updateMediaMessage: (message: proto.IWebMessageInfo) => Promise<proto.IWebMessageInfo>;
-    sendMessage: (jid: string, content: import("@adiwajshing/baileys").AnyMessageContent, options?: import("@adiwajshing/baileys").MiscMessageGenerationOptions | undefined) => Promise<proto.WebMessageInfo | undefined>;
+    updateMediaMessage: (message: import("@adiwajshing/baileys").proto.IWebMessageInfo) => Promise<import("@adiwajshing/baileys").proto.IWebMessageInfo>;
+    sendMessage: (jid: string, content: import("@adiwajshing/baileys").AnyMessageContent, options?: import("@adiwajshing/baileys").MiscMessageGenerationOptions | undefined) => Promise<import("@adiwajshing/baileys").proto.WebMessageInfo | undefined>;
     groupMetadata: (jid: string) => Promise<import("@adiwajshing/baileys").GroupMetadata>;
     groupCreate: (subject: string, participants: string[]) => Promise<import("@adiwajshing/baileys").GroupMetadata>;
     groupLeave: (id: string) => Promise<void>;
@@ -42,7 +43,7 @@ export declare const startSession: (sessionId?: string) => Promise<{
     groupInviteCode: (jid: string) => Promise<string | undefined>;
     groupRevokeInvite: (jid: string) => Promise<string | undefined>;
     groupAcceptInvite: (code: string) => Promise<string | undefined>;
-    groupAcceptInviteV4: (key: string | proto.IMessageKey, inviteMessage: proto.IGroupInviteMessage) => Promise<string>;
+    groupAcceptInviteV4: (key: string | import("@adiwajshing/baileys").proto.IMessageKey, inviteMessage: import("@adiwajshing/baileys").proto.IGroupInviteMessage) => Promise<string>;
     groupGetInviteInfo: (code: string) => Promise<import("@adiwajshing/baileys").GroupMetadata>;
     groupToggleEphemeral: (jid: string, ephemeralExpiration: number) => Promise<void>;
     groupSettingUpdate: (jid: string, setting: "announcement" | "locked" | "not_announcement" | "unlocked") => Promise<void>;
@@ -52,7 +53,7 @@ export declare const startSession: (sessionId?: string) => Promise<{
     processingMutex: {
         mutex<T>(code: () => T | Promise<T>): Promise<T>;
     };
-    upsertMessage: (msg: proto.IWebMessageInfo, type: import("@adiwajshing/baileys").MessageUpsertType) => Promise<void>;
+    upsertMessage: (msg: import("@adiwajshing/baileys").proto.IWebMessageInfo, type: import("@adiwajshing/baileys").MessageUpsertType) => Promise<void>;
     appPatch: (patchCreate: import("@adiwajshing/baileys").WAPatchCreate) => Promise<void>;
     sendPresenceUpdate: (type: import("@adiwajshing/baileys").WAPresence, toJid?: string | undefined) => Promise<void>;
     presenceSubscribe: (toJid: string) => Promise<void>;
@@ -120,17 +121,17 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
     sendRetryRequest: (node: import("@adiwajshing/baileys").BinaryNode, forceIncludeKeys?: boolean | undefined) => Promise<void>;
     getPrivacyTokens: (jids: string[]) => Promise<import("@adiwajshing/baileys").BinaryNode>;
     assertSessions: (jids: string[], force: boolean) => Promise<boolean>;
-    relayMessage: (jid: string, message: proto.IMessage, { messageId: msgId, participant, additionalAttributes, useUserDevicesCache, cachedGroupMetadata }: import("@adiwajshing/baileys").MessageRelayOptions) => Promise<string>;
+    relayMessage: (jid: string, message: import("@adiwajshing/baileys").proto.IMessage, { messageId: msgId, participant, additionalAttributes, useUserDevicesCache, cachedGroupMetadata }: import("@adiwajshing/baileys").MessageRelayOptions) => Promise<string>;
     sendReceipt: (jid: string, participant: string | undefined, messageIds: string[], type: import("@adiwajshing/baileys").MessageReceiptType) => Promise<void>;
     sendReadReceipt: (jid: string, participant: string | undefined, messageIds: string[]) => Promise<void>;
-    readMessages: (keys: proto.IMessageKey[]) => Promise<void>;
+    readMessages: (keys: import("@adiwajshing/baileys").proto.IMessageKey[]) => Promise<void>;
     refreshMediaConn: (forceGet?: boolean | undefined) => Promise<import("@adiwajshing/baileys").MediaConnInfo>;
     waUploadToServer: import("@adiwajshing/baileys").WAMediaUploadFunction;
     fetchPrivacySettings: (force?: boolean | undefined) => Promise<{
         [_: string]: string;
     }>;
-    updateMediaMessage: (message: proto.IWebMessageInfo) => Promise<proto.IWebMessageInfo>;
-    sendMessage: (jid: string, content: import("@adiwajshing/baileys").AnyMessageContent, options?: import("@adiwajshing/baileys").MiscMessageGenerationOptions | undefined) => Promise<proto.WebMessageInfo | undefined>;
+    updateMediaMessage: (message: import("@adiwajshing/baileys").proto.IWebMessageInfo) => Promise<import("@adiwajshing/baileys").proto.IWebMessageInfo>;
+    sendMessage: (jid: string, content: import("@adiwajshing/baileys").AnyMessageContent, options?: import("@adiwajshing/baileys").MiscMessageGenerationOptions | undefined) => Promise<import("@adiwajshing/baileys").proto.WebMessageInfo | undefined>;
     groupMetadata: (jid: string) => Promise<import("@adiwajshing/baileys").GroupMetadata>;
     groupCreate: (subject: string, participants: string[]) => Promise<import("@adiwajshing/baileys").GroupMetadata>;
     groupLeave: (id: string) => Promise<void>;
@@ -143,7 +144,7 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
     groupInviteCode: (jid: string) => Promise<string | undefined>;
     groupRevokeInvite: (jid: string) => Promise<string | undefined>;
     groupAcceptInvite: (code: string) => Promise<string | undefined>;
-    groupAcceptInviteV4: (key: string | proto.IMessageKey, inviteMessage: proto.IGroupInviteMessage) => Promise<string>;
+    groupAcceptInviteV4: (key: string | import("@adiwajshing/baileys").proto.IMessageKey, inviteMessage: import("@adiwajshing/baileys").proto.IGroupInviteMessage) => Promise<string>;
     groupGetInviteInfo: (code: string) => Promise<import("@adiwajshing/baileys").GroupMetadata>;
     groupToggleEphemeral: (jid: string, ephemeralExpiration: number) => Promise<void>;
     groupSettingUpdate: (jid: string, setting: "announcement" | "locked" | "not_announcement" | "unlocked") => Promise<void>;
@@ -153,7 +154,7 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
     processingMutex: {
         mutex<T>(code: () => T | Promise<T>): Promise<T>;
     };
-    upsertMessage: (msg: proto.IWebMessageInfo, type: import("@adiwajshing/baileys").MessageUpsertType) => Promise<void>;
+    upsertMessage: (msg: import("@adiwajshing/baileys").proto.IWebMessageInfo, type: import("@adiwajshing/baileys").MessageUpsertType) => Promise<void>;
     appPatch: (patchCreate: import("@adiwajshing/baileys").WAPatchCreate) => Promise<void>;
     sendPresenceUpdate: (type: import("@adiwajshing/baileys").WAPresence, toJid?: string | undefined) => Promise<void>;
     presenceSubscribe: (toJid: string) => Promise<void>;

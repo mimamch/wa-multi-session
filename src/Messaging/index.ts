@@ -1,4 +1,5 @@
 import { proto, WASocket } from "@adiwajshing/baileys";
+import { Messages } from "../Defaults";
 import { getSession } from "../Socket";
 import {
   SendMediaTypes,
@@ -18,7 +19,7 @@ export const sendTextMessage = async ({
   ...props
 }: SendMessageTypes): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
-  if (!session) throw new Error(`Session with ID: ${sessionId} Not Found!`);
+  if (!session) throw new Error(Messages.sessionNotFound(sessionId));
   const oldPhone = to;
   to = phoneToJid({ to, isGroup, sessionId });
   const isRegistered = await isExist({
@@ -48,7 +49,7 @@ export const sendImage = async ({
   ...props
 }: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
-  if (!session) throw new Error(`Session with ID: ${sessionId} Not Found!`);
+  if (!session) throw new Error(Messages.sessionNotFound(sessionId));
   const oldPhone = to;
   to = phoneToJid({ to, isGroup, sessionId });
   const isRegistered = await isExist({
@@ -85,7 +86,7 @@ export const sendVideo = async ({
   ...props
 }: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
-  if (!session) throw new Error(`Session with ID: ${sessionId} Not Found!`);
+  if (!session) throw new Error(Messages.sessionNotFound(sessionId));
   const oldPhone = to;
   to = phoneToJid({ to, isGroup, sessionId });
   const isRegistered = await isExist({
@@ -133,7 +134,7 @@ export const sendTyping = async ({
   const oldPhone = to;
   to = phoneToJid({ to, isGroup, sessionId });
   const session = getSession(sessionId);
-  if (!session) throw new Error(`Session with ID: ${sessionId} Not Found!`);
+  if (!session) throw new Error(Messages.sessionNotFound(sessionId));
   const isRegistered = await isExist({
     sessionId,
     to,
@@ -159,7 +160,7 @@ export const sendTyping = async ({
  */
 export const readMessage = async ({ sessionId, key }: SendReadTypes) => {
   const session = getSession(sessionId);
-  if (!session) throw new Error(`Session with ID: ${sessionId} Not Found!`);
+  if (!session) throw new Error(Messages.sessionNotFound(sessionId));
 
   await session.readMessages([key]);
 };

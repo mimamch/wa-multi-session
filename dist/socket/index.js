@@ -40,16 +40,17 @@ const baileys_1 = __importStar(require("@adiwajshing/baileys"));
 const pino_1 = __importDefault(require("pino"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const Defaults_1 = require("../Defaults");
 const msgRetryCounterMap = {};
 const sessions = new Map();
 const callback = new Map();
 const startSession = (sessionId = "mysession") => __awaiter(void 0, void 0, void 0, function* () {
     if (checkIsAvailableCreds(sessionId))
-        throw new Error(`Session ID :${sessionId} is already exist, Try another Session ID.`);
-    const logger = (0, pino_1.default)({ level: "silent" });
+        throw new Error(Defaults_1.Messages.sessionAlreadyExist(sessionId));
+    const logger = (0, pino_1.default)({ level: "error" });
     const { version, isLatest } = yield (0, baileys_1.fetchLatestBaileysVersion)();
     const startSocket = () => __awaiter(void 0, void 0, void 0, function* () {
-        const { state, saveCreds } = yield (0, baileys_1.useMultiFileAuthState)(path_1.default.resolve("wa_credentials", sessionId + "_credentials"));
+        const { state, saveCreds } = yield (0, baileys_1.useMultiFileAuthState)(path_1.default.resolve(Defaults_1.CREDENTIALS.DIR_NAME, sessionId + Defaults_1.CREDENTIALS.PREFIX));
         const sock = (0, baileys_1.default)({
             version,
             printQRInTerminal: true,
@@ -80,13 +81,9 @@ const startSession = (sessionId = "mysession") => __awaiter(void 0, void 0, void
             if (events["creds.update"]) {
                 yield saveCreds();
             }
-            // if (params?.onReceiveMessage && events["messages.upsert"]) {
-            //   const msg = events["messages.upsert"].messages?.[0];
-            //   params?.onReceiveMessage(msg);
-            // }
             if (events["messages.upsert"]) {
                 const msg = (_a = events["messages.upsert"].messages) === null || _a === void 0 ? void 0 : _a[0];
-                (_b = callback.get("onMessageReceive")) === null || _b === void 0 ? void 0 : _b(Object.assign({ sessionId }, msg));
+                (_b = callback.get(Defaults_1.CALLBACK_KEY.ON_MESSAGE_RECEIVED)) === null || _b === void 0 ? void 0 : _b(Object.assign({ sessionId }, msg));
             }
         }));
         return sock;
@@ -102,7 +99,7 @@ const deleteSession = (sessionId) => {
     const session = (0, exports.getSession)(sessionId);
     session === null || session === void 0 ? void 0 : session.logout();
     sessions.delete(sessionId);
-    const dir = path_1.default.resolve("wa_credentials", sessionId + "_credentials");
+    const dir = path_1.default.resolve(Defaults_1.CREDENTIALS.DIR_NAME, sessionId + Defaults_1.CREDENTIALS.PREFIX);
     if (fs_1.default.existsSync(dir)) {
         fs_1.default.rmSync(dir, { force: true, recursive: true });
     }
@@ -113,21 +110,21 @@ exports.getAllSession = getAllSession;
 const getSession = (key) => sessions.get(key);
 exports.getSession = getSession;
 const loadSessions = () => __awaiter(void 0, void 0, void 0, function* () {
-    if (!fs_1.default.existsSync(path_1.default.resolve("wa_credentials"))) {
-        fs_1.default.mkdirSync(path_1.default.resolve("wa_credentials"));
+    if (!fs_1.default.existsSync(path_1.default.resolve(Defaults_1.CREDENTIALS.DIR_NAME))) {
+        fs_1.default.mkdirSync(path_1.default.resolve(Defaults_1.CREDENTIALS.DIR_NAME));
     }
-    fs_1.default.readdir(path_1.default.resolve("wa_credentials"), (err, dirs) => __awaiter(void 0, void 0, void 0, function* () {
+    fs_1.default.readdir(path_1.default.resolve(Defaults_1.CREDENTIALS.DIR_NAME), (err, dirs) => __awaiter(void 0, void 0, void 0, function* () {
         if (err) {
             throw err;
         }
         for (const dir of dirs) {
-            (0, exports.startWhatsapp)(dir.split("_")[0]);
+            (0, exports.startSession)(dir.split("_")[0]);
         }
     }));
 });
 const checkIsAvailableCreds = (sessionId) => {
-    if (fs_1.default.existsSync(path_1.default.resolve("wa_credentials")) &&
-        fs_1.default.existsSync(path_1.default.resolve("wa_credentials", sessionId + "_credentials")) &&
+    if (fs_1.default.existsSync(path_1.default.resolve(Defaults_1.CREDENTIALS.DIR_NAME)) &&
+        fs_1.default.existsSync(path_1.default.resolve(Defaults_1.CREDENTIALS.DIR_NAME, sessionId + Defaults_1.CREDENTIALS.PREFIX)) &&
         (0, exports.getSession)(sessionId)) {
         return true;
     }
@@ -135,6 +132,6 @@ const checkIsAvailableCreds = (sessionId) => {
 };
 loadSessions();
 const onMessageReceived = (listener) => {
-    callback.set("onMessageReceive", listener);
+    callback.set(Defaults_1.CALLBACK_KEY.ON_MESSAGE_RECEIVED, listener);
 };
 exports.onMessageReceived = onMessageReceived;

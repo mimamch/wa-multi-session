@@ -21,6 +21,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.readMessage = exports.sendTyping = exports.sendVideo = exports.sendImage = exports.sendTextMessage = void 0;
+const Defaults_1 = require("../Defaults");
 const Socket_1 = require("../Socket");
 const Utils_1 = require("../Utils");
 const create_delay_1 = require("../Utils/create-delay");
@@ -29,7 +30,7 @@ const sendTextMessage = (_a) => __awaiter(void 0, void 0, void 0, function* () {
     var { sessionId, to, text = "", isGroup = false } = _a, props = __rest(_a, ["sessionId", "to", "text", "isGroup"]);
     const session = (0, Socket_1.getSession)(sessionId);
     if (!session)
-        throw new Error(`Session with ID: ${sessionId} Not Found!`);
+        throw new Error(Defaults_1.Messages.sessionNotFound(sessionId));
     const oldPhone = to;
     to = (0, Utils_1.phoneToJid)({ to, isGroup, sessionId });
     const isRegistered = yield (0, is_exist_1.isExist)({
@@ -51,7 +52,7 @@ const sendImage = (_b) => __awaiter(void 0, void 0, void 0, function* () {
     var { sessionId, to, text = "", isGroup = false, media } = _b, props = __rest(_b, ["sessionId", "to", "text", "isGroup", "media"]);
     const session = (0, Socket_1.getSession)(sessionId);
     if (!session)
-        throw new Error(`Session with ID: ${sessionId} Not Found!`);
+        throw new Error(Defaults_1.Messages.sessionNotFound(sessionId));
     const oldPhone = to;
     to = (0, Utils_1.phoneToJid)({ to, isGroup, sessionId });
     const isRegistered = yield (0, is_exist_1.isExist)({
@@ -80,7 +81,7 @@ const sendVideo = (_c) => __awaiter(void 0, void 0, void 0, function* () {
     var { sessionId, to, text = "", isGroup = false, media } = _c, props = __rest(_c, ["sessionId", "to", "text", "isGroup", "media"]);
     const session = (0, Socket_1.getSession)(sessionId);
     if (!session)
-        throw new Error(`Session with ID: ${sessionId} Not Found!`);
+        throw new Error(Defaults_1.Messages.sessionNotFound(sessionId));
     const oldPhone = to;
     to = (0, Utils_1.phoneToJid)({ to, isGroup, sessionId });
     const isRegistered = yield (0, is_exist_1.isExist)({
@@ -120,7 +121,7 @@ const sendTyping = ({ sessionId, to, duration = 1000, isGroup = false, }) => __a
     to = (0, Utils_1.phoneToJid)({ to, isGroup, sessionId });
     const session = (0, Socket_1.getSession)(sessionId);
     if (!session)
-        throw new Error(`Session with ID: ${sessionId} Not Found!`);
+        throw new Error(Defaults_1.Messages.sessionNotFound(sessionId));
     const isRegistered = yield (0, is_exist_1.isExist)({
         sessionId,
         to,
@@ -147,7 +148,7 @@ exports.sendTyping = sendTyping;
 const readMessage = ({ sessionId, key }) => __awaiter(void 0, void 0, void 0, function* () {
     const session = (0, Socket_1.getSession)(sessionId);
     if (!session)
-        throw new Error(`Session with ID: ${sessionId} Not Found!`);
+        throw new Error(Defaults_1.Messages.sessionNotFound(sessionId));
     yield session.readMessages([key]);
 });
 exports.readMessage = readMessage;

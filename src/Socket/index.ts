@@ -1,7 +1,6 @@
 import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
-  proto,
   useMultiFileAuthState,
   WASocket,
 } from "@adiwajshing/baileys";
@@ -9,7 +8,8 @@ import pino from "pino";
 import path from "path";
 import { Boom } from "@hapi/boom";
 import fs from "fs";
-import { MessageReceived } from "../Types";
+import type { MessageReceived } from "../Types";
+import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
 
 const msgRetryCounterMap = {};
 const sessions: Map<string, WASocket> = new Map();
@@ -18,16 +18,14 @@ const callback: Map<string, Function> = new Map();
 
 export const startSession = async (sessionId = "mysession") => {
   if (checkIsAvailableCreds(sessionId))
-    throw new Error(
-      `Session ID :${sessionId} is already exist, Try another Session ID.`
-    );
-  const logger = pino({ level: "silent" });
+    throw new Error(Messages.sessionAlreadyExist(sessionId));
+  const logger = pino({ level: "error" });
 
   const { version, isLatest } = await fetchLatestBaileysVersion();
 
   const startSocket = async () => {
     const { state, saveCreds } = await useMultiFileAuthState(
-      path.resolve("wa_credentials", sessionId + "_credentials")
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
     );
     const sock: WASocket = makeWASocket({
       version,
@@ -60,13 +58,9 @@ export const startSession = async (sessionId = "mysession") => {
       if (events["creds.update"]) {
         await saveCreds();
       }
-      // if (params?.onReceiveMessage && events["messages.upsert"]) {
-      //   const msg = events["messages.upsert"].messages?.[0];
-      //   params?.onReceiveMessage(msg);
-      // }
       if (events["messages.upsert"]) {
         const msg = events["messages.upsert"].messages?.[0];
-        callback.get("onMessageReceive")?.({ sessionId, ...msg });
+        callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({ sessionId, ...msg });
       }
     });
     return sock;
@@ -83,7 +77,10 @@ export const deleteSession = (sessionId: string) => {
   const session = getSession(sessionId);
   session?.logout();
   sessions.delete(sessionId);
-  const dir = path.resolve("wa_credentials", sessionId + "_credentials");
+  const dir = path.resolve(
+    CREDENTIALS.DIR_NAME,
+    sessionId + CREDENTIALS.PREFIX
+  );
   if (fs.existsSync(dir)) {
     fs.rmSync(dir, { force: true, recursive: true });
   }
@@ -94,10 +91,10 @@ export const getSession = (key: string): WASocket | undefined =>
   sessions.get(key) as WASocket;
 
 const loadSessions = async () => {
-  if (!fs.existsSync(path.resolve("wa_credentials"))) {
-    fs.mkdirSync(path.resolve("wa_credentials"));
+  if (!fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME))) {
+    fs.mkdirSync(path.resolve(CREDENTIALS.DIR_NAME));
   }
-  fs.readdir(path.resolve("wa_credentials"), async (err, dirs) => {
+  fs.readdir(path.resolve(CREDENTIALS.DIR_NAME), async (err, dirs) => {
     if (err) {
       throw err;
     }
@@ -109,8 +106,10 @@ const loadSessions = async () => {
 
 const checkIsAvailableCreds = (sessionId: string): boolean => {
   if (
-    fs.existsSync(path.resolve("wa_credentials")) &&
-    fs.existsSync(path.resolve("wa_credentials", sessionId + "_credentials")) &&
+    fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
+    fs.existsSync(
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+    ) &&
     getSession(sessionId)
   ) {
     return true;
@@ -121,5 +120,5 @@ const checkIsAvailableCreds = (sessionId: string): boolean => {
 loadSessions();
 
 export const onMessageReceived = (listener: (msg: MessageReceived) => any) => {
-  callback.set("onMessageReceive", listener);
+  callback.set(CALLBACK_KEY.ON_MESSAGE_RECEIVED, listener);
 };
