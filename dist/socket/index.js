@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onMessageReceived = exports.getSession = exports.getAllSession = exports.deleteSession = exports.startWhatsapp = void 0;
+exports.onMessageReceived = exports.getSession = exports.getAllSession = exports.deleteSession = exports.startWhatsapp = exports.startSession = void 0;
 const baileys_1 = __importStar(require("@adiwajshing/baileys"));
 const pino_1 = __importDefault(require("pino"));
 const path_1 = __importDefault(require("path"));
@@ -43,7 +43,7 @@ const fs_1 = __importDefault(require("fs"));
 const msgRetryCounterMap = {};
 const sessions = new Map();
 const callback = new Map();
-const startWhatsapp = (sessionId = "mysession") => __awaiter(void 0, void 0, void 0, function* () {
+const startSession = (sessionId = "mysession") => __awaiter(void 0, void 0, void 0, function* () {
     if (checkIsAvailableCreds(sessionId))
         throw new Error(`Session ID :${sessionId} is already exist, Try another Session ID.`);
     const logger = (0, pino_1.default)({ level: "silent" });
@@ -93,7 +93,11 @@ const startWhatsapp = (sessionId = "mysession") => __awaiter(void 0, void 0, voi
     });
     return yield startSocket();
 });
-exports.startWhatsapp = startWhatsapp;
+exports.startSession = startSession;
+/**
+ * @deprecated Use startSession method instead
+ */
+exports.startWhatsapp = exports.startSession;
 const deleteSession = (sessionId) => {
     const session = (0, exports.getSession)(sessionId);
     session === null || session === void 0 ? void 0 : session.logout();

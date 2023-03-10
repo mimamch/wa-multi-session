@@ -16,7 +16,7 @@ const sessions: Map<string, WASocket> = new Map();
 
 const callback: Map<string, Function> = new Map();
 
-export const startWhatsapp = async (sessionId = "mysession") => {
+export const startSession = async (sessionId = "mysession") => {
   if (checkIsAvailableCreds(sessionId))
     throw new Error(
       `Session ID :${sessionId} is already exist, Try another Session ID.`
@@ -73,6 +73,11 @@ export const startWhatsapp = async (sessionId = "mysession") => {
   };
   return await startSocket();
 };
+
+/**
+ * @deprecated Use startSession method instead
+ */
+export const startWhatsapp = startSession;
 
 export const deleteSession = (sessionId: string) => {
   const session = getSession(sessionId);

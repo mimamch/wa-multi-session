@@ -1,4 +1,4 @@
-# Whatsapp Multi Session
+# Whatsapp Multi Session - Connecting More Whatsapp Session in 1 App
 
 Connecting Your app with Whatsapp Messaging
 
@@ -35,7 +35,7 @@ Start New Session
 ```ts
 // create session with ID : mysessionid
 
-const session = await whatsapp.startWhatsapp("mysessionid");
+const session = await whatsapp.startSession("mysessionid");
 // Then, scan QR on terminal
 ```
 
