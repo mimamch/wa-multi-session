@@ -102,7 +102,7 @@ const loadSessions = async () => {
       throw err;
     }
     for (const dir of dirs) {
-      startWhatsapp(dir.split("_")[0]);
+      startSession(dir.split("_")[0]);
     }
   });
 };
