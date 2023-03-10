@@ -11,7 +11,7 @@ Stand above [Baileys](https://github.com/adiwajshing/Baileys) Library.
 Install package using npm
 
 ```
-  npm install wa-multi-session
+npm install wa-multi-session
 ```
 
 Then import your code
@@ -89,13 +89,55 @@ const send = await whatsapp.sendImage({
 });
 ```
 
-## Configuration Usage/Examples
+Read a Message
+
+```ts
+await whatsapp.readMessage({
+  sessionId: "session1",
+  key: msg.key,
+});
+```
+
+Send Typing Effect
+
+```ts
+await whatsapp.sendTyping({
+  sessionId: "session1",
+  to: "6281234567890",
+  duration: 3000,
+});
+```
+
+## Listener Usage/Examples
 
 Add Listener/Callback When Receive a Message
 
 ```ts
 whatsapp.onMessageReceived((msg) => {
   console.log(`New Message Received On Session: ${msg.sessionId} >>>`, msg);
+});
+```
+
+## Handling Incoming Message Examples
+
+```ts
+whatsapp.onMessageReceived(async (msg) => {
+  if (msg.key.fromMe || msg.key.remoteJid.includes("status")) return;
+  await whatsapp.readMessage({
+    sessionId: msg.sessionId,
+    key: msg.key,
+  });
+  await whatsapp.sendTyping({
+    sessionId: msg.sessionId,
+    to: msg.key.remoteJid,
+    duration: 3000,
+  });
+  await whatsapp.sendTextMessage({
+    sessionId: msg.sessionId,
+    to: msg.key.remoteJid,
+    text: "Hello!",
+    answering: msg, // for quoting message
+  });
 });
 ```
 

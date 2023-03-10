@@ -4,6 +4,7 @@ export const phoneToJid = ({
   to,
   isGroup = false,
 }: SendMessageTypes): string => {
+  if (!to) throw new Error('parameter "to" is required');
   let number = to.toString();
   if (isGroup) {
     number = number.replace(/\s|[+]|[-]/gim, "");

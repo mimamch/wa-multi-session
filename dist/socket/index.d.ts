@@ -1,11 +1,9 @@
-/// <reference types="node" />
 import { proto, WASocket } from "@adiwajshing/baileys";
 import { MessageReceived } from "../Types";
 export declare const startSession: (sessionId?: string) => Promise<{
     getOrderDetails: (orderId: string, tokenBase64: string) => Promise<import("@adiwajshing/baileys").OrderDetails>;
-    getCatalog: ({ jid, limit, cursor }: import("@adiwajshing/baileys").GetCatalogOptions) => Promise<{
+    getCatalog: (jid?: string | undefined, limit?: number | undefined) => Promise<{
         products: import("@adiwajshing/baileys").Product[];
-        nextPageCursor: string | undefined;
     }>;
     getCollections: (jid?: string | undefined, limit?: number | undefined) => Promise<{
         collections: import("@adiwajshing/baileys").CatalogCollection[];
@@ -15,14 +13,15 @@ export declare const startSession: (sessionId?: string) => Promise<{
         deleted: number;
     }>;
     productUpdate: (productId: string, update: import("@adiwajshing/baileys").ProductUpdate) => Promise<import("@adiwajshing/baileys").Product>;
-    sendMessageAck: ({ tag, attrs }: import("@adiwajshing/baileys").BinaryNode) => Promise<void>;
+    sendMessageAck: ({ tag, attrs }: import("@adiwajshing/baileys").BinaryNode, extraAttrs?: {
+        [key: string]: string;
+    } | undefined) => Promise<void>;
     sendRetryRequest: (node: import("@adiwajshing/baileys").BinaryNode, forceIncludeKeys?: boolean | undefined) => Promise<void>;
-    rejectCall: (callId: string, callFrom: string) => Promise<void>;
     getPrivacyTokens: (jids: string[]) => Promise<import("@adiwajshing/baileys").BinaryNode>;
     assertSessions: (jids: string[], force: boolean) => Promise<boolean>;
     relayMessage: (jid: string, message: proto.IMessage, { messageId: msgId, participant, additionalAttributes, useUserDevicesCache, cachedGroupMetadata }: import("@adiwajshing/baileys").MessageRelayOptions) => Promise<string>;
     sendReceipt: (jid: string, participant: string | undefined, messageIds: string[], type: import("@adiwajshing/baileys").MessageReceiptType) => Promise<void>;
-    sendReceipts: (keys: proto.IMessageKey[], type: import("@adiwajshing/baileys").MessageReceiptType) => Promise<void>;
+    sendReadReceipt: (jid: string, participant: string | undefined, messageIds: string[]) => Promise<void>;
     readMessages: (keys: proto.IMessageKey[]) => Promise<void>;
     refreshMediaConn: (forceGet?: boolean | undefined) => Promise<import("@adiwajshing/baileys").MediaConnInfo>;
     waUploadToServer: import("@adiwajshing/baileys").WAMediaUploadFunction;
@@ -43,7 +42,7 @@ export declare const startSession: (sessionId?: string) => Promise<{
     groupInviteCode: (jid: string) => Promise<string | undefined>;
     groupRevokeInvite: (jid: string) => Promise<string | undefined>;
     groupAcceptInvite: (code: string) => Promise<string | undefined>;
-    groupAcceptInviteV4: (key: string | proto.IMessageKey, inviteMessage: proto.Message.IGroupInviteMessage) => Promise<string>;
+    groupAcceptInviteV4: (key: string | proto.IMessageKey, inviteMessage: proto.IGroupInviteMessage) => Promise<string>;
     groupGetInviteInfo: (code: string) => Promise<import("@adiwajshing/baileys").GroupMetadata>;
     groupToggleEphemeral: (jid: string, ephemeralExpiration: number) => Promise<void>;
     groupSettingUpdate: (jid: string, setting: "announcement" | "locked" | "not_announcement" | "unlocked") => Promise<void>;
@@ -56,7 +55,7 @@ export declare const startSession: (sessionId?: string) => Promise<{
     upsertMessage: (msg: proto.IWebMessageInfo, type: import("@adiwajshing/baileys").MessageUpsertType) => Promise<void>;
     appPatch: (patchCreate: import("@adiwajshing/baileys").WAPatchCreate) => Promise<void>;
     sendPresenceUpdate: (type: import("@adiwajshing/baileys").WAPresence, toJid?: string | undefined) => Promise<void>;
-    presenceSubscribe: (toJid: string, tcToken?: Buffer | undefined) => Promise<void>;
+    presenceSubscribe: (toJid: string) => Promise<void>;
     profilePictureUrl: (jid: string, type?: "image" | "preview" | undefined, timeoutMs?: number | undefined) => Promise<string | undefined>;
     onWhatsApp: (...jids: string[]) => Promise<{
         exists: boolean;
@@ -69,19 +68,18 @@ export declare const startSession: (sessionId?: string) => Promise<{
     } | undefined>;
     updateProfilePicture: (jid: string, content: import("@adiwajshing/baileys").WAMediaUpload) => Promise<void>;
     updateProfileStatus: (status: string) => Promise<void>;
-    updateProfileName: (name: string) => Promise<void>;
     updateBlockStatus: (jid: string, action: "block" | "unblock") => Promise<void>;
     getBusinessProfile: (jid: string) => Promise<void | import("@adiwajshing/baileys").WABusinessProfile>;
-    resyncAppState: (collections: readonly ("critical_block" | "critical_unblock_low" | "regular_high" | "regular_low" | "regular")[], isInitialSync: boolean) => Promise<void>;
+    resyncAppState: (collections: readonly ("critical_block" | "critical_unblock_low" | "regular_high" | "regular_low" | "regular")[], recvChats: import("@adiwajshing/baileys").InitialReceivedChatsState | undefined) => Promise<void>;
     chatModify: (mod: import("@adiwajshing/baileys").ChatModification, jid: string) => Promise<void>;
+    resyncMainAppState: (ctx?: import("@adiwajshing/baileys").InitialReceivedChatsState | undefined) => Promise<void>;
     type: "md";
     ws: any;
     ev: import("@adiwajshing/baileys").BaileysEventEmitter & {
-        process(handler: (events: Partial<import("@adiwajshing/baileys").BaileysEventMap>) => void | Promise<void>): () => void;
-        buffer(): void;
-        createBufferedFunction<A extends any[], T_1>(work: (...args: A) => Promise<T_1>): (...args: A) => Promise<T_1>;
-        flush(force?: boolean | undefined): boolean;
-        isBuffering(): boolean;
+        process(handler: (events: Partial<import("@adiwajshing/baileys").BaileysEventMap<import("@adiwajshing/baileys").AuthenticationCreds>>) => void | Promise<void>): () => void;
+        buffer(): boolean;
+        flush(): Promise<void>;
+        processInBuffer(task: Promise<any>): any;
     };
     authState: {
         creds: import("@adiwajshing/baileys").AuthenticationCreds;
@@ -94,11 +92,10 @@ export declare const startSession: (sessionId?: string) => Promise<{
     waitForSocketOpen: () => Promise<void>;
     sendRawMessage: (data: Buffer | Uint8Array) => Promise<void>;
     sendNode: (frame: import("@adiwajshing/baileys").BinaryNode) => Promise<void>;
-    logout: (msg?: string | undefined) => Promise<void>;
+    logout: () => Promise<void>;
     end: (error: Error | undefined) => void;
     onUnexpectedError: (error: Error, msg: string) => void;
     uploadPreKeys: (count?: number | undefined) => Promise<void>;
-    uploadPreKeysToServerIfRequired: () => Promise<void>;
     waitForConnectionUpdate: (check: (u: Partial<import("@adiwajshing/baileys").ConnectionState>) => boolean | undefined, timeoutMs?: number | undefined) => Promise<void>;
 }>;
 /**
@@ -106,9 +103,8 @@ export declare const startSession: (sessionId?: string) => Promise<{
  */
 export declare const startWhatsapp: (sessionId?: string) => Promise<{
     getOrderDetails: (orderId: string, tokenBase64: string) => Promise<import("@adiwajshing/baileys").OrderDetails>;
-    getCatalog: ({ jid, limit, cursor }: import("@adiwajshing/baileys").GetCatalogOptions) => Promise<{
+    getCatalog: (jid?: string | undefined, limit?: number | undefined) => Promise<{
         products: import("@adiwajshing/baileys").Product[];
-        nextPageCursor: string | undefined;
     }>;
     getCollections: (jid?: string | undefined, limit?: number | undefined) => Promise<{
         collections: import("@adiwajshing/baileys").CatalogCollection[];
@@ -118,14 +114,15 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
         deleted: number;
     }>;
     productUpdate: (productId: string, update: import("@adiwajshing/baileys").ProductUpdate) => Promise<import("@adiwajshing/baileys").Product>;
-    sendMessageAck: ({ tag, attrs }: import("@adiwajshing/baileys").BinaryNode) => Promise<void>;
+    sendMessageAck: ({ tag, attrs }: import("@adiwajshing/baileys").BinaryNode, extraAttrs?: {
+        [key: string]: string;
+    } | undefined) => Promise<void>;
     sendRetryRequest: (node: import("@adiwajshing/baileys").BinaryNode, forceIncludeKeys?: boolean | undefined) => Promise<void>;
-    rejectCall: (callId: string, callFrom: string) => Promise<void>;
     getPrivacyTokens: (jids: string[]) => Promise<import("@adiwajshing/baileys").BinaryNode>;
     assertSessions: (jids: string[], force: boolean) => Promise<boolean>;
     relayMessage: (jid: string, message: proto.IMessage, { messageId: msgId, participant, additionalAttributes, useUserDevicesCache, cachedGroupMetadata }: import("@adiwajshing/baileys").MessageRelayOptions) => Promise<string>;
     sendReceipt: (jid: string, participant: string | undefined, messageIds: string[], type: import("@adiwajshing/baileys").MessageReceiptType) => Promise<void>;
-    sendReceipts: (keys: proto.IMessageKey[], type: import("@adiwajshing/baileys").MessageReceiptType) => Promise<void>;
+    sendReadReceipt: (jid: string, participant: string | undefined, messageIds: string[]) => Promise<void>;
     readMessages: (keys: proto.IMessageKey[]) => Promise<void>;
     refreshMediaConn: (forceGet?: boolean | undefined) => Promise<import("@adiwajshing/baileys").MediaConnInfo>;
     waUploadToServer: import("@adiwajshing/baileys").WAMediaUploadFunction;
@@ -146,7 +143,7 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
     groupInviteCode: (jid: string) => Promise<string | undefined>;
     groupRevokeInvite: (jid: string) => Promise<string | undefined>;
     groupAcceptInvite: (code: string) => Promise<string | undefined>;
-    groupAcceptInviteV4: (key: string | proto.IMessageKey, inviteMessage: proto.Message.IGroupInviteMessage) => Promise<string>;
+    groupAcceptInviteV4: (key: string | proto.IMessageKey, inviteMessage: proto.IGroupInviteMessage) => Promise<string>;
     groupGetInviteInfo: (code: string) => Promise<import("@adiwajshing/baileys").GroupMetadata>;
     groupToggleEphemeral: (jid: string, ephemeralExpiration: number) => Promise<void>;
     groupSettingUpdate: (jid: string, setting: "announcement" | "locked" | "not_announcement" | "unlocked") => Promise<void>;
@@ -159,7 +156,7 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
     upsertMessage: (msg: proto.IWebMessageInfo, type: import("@adiwajshing/baileys").MessageUpsertType) => Promise<void>;
     appPatch: (patchCreate: import("@adiwajshing/baileys").WAPatchCreate) => Promise<void>;
     sendPresenceUpdate: (type: import("@adiwajshing/baileys").WAPresence, toJid?: string | undefined) => Promise<void>;
-    presenceSubscribe: (toJid: string, tcToken?: Buffer | undefined) => Promise<void>;
+    presenceSubscribe: (toJid: string) => Promise<void>;
     profilePictureUrl: (jid: string, type?: "image" | "preview" | undefined, timeoutMs?: number | undefined) => Promise<string | undefined>;
     onWhatsApp: (...jids: string[]) => Promise<{
         exists: boolean;
@@ -172,19 +169,18 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
     } | undefined>;
     updateProfilePicture: (jid: string, content: import("@adiwajshing/baileys").WAMediaUpload) => Promise<void>;
     updateProfileStatus: (status: string) => Promise<void>;
-    updateProfileName: (name: string) => Promise<void>;
     updateBlockStatus: (jid: string, action: "block" | "unblock") => Promise<void>;
     getBusinessProfile: (jid: string) => Promise<void | import("@adiwajshing/baileys").WABusinessProfile>;
-    resyncAppState: (collections: readonly ("critical_block" | "critical_unblock_low" | "regular_high" | "regular_low" | "regular")[], isInitialSync: boolean) => Promise<void>;
+    resyncAppState: (collections: readonly ("critical_block" | "critical_unblock_low" | "regular_high" | "regular_low" | "regular")[], recvChats: import("@adiwajshing/baileys").InitialReceivedChatsState | undefined) => Promise<void>;
     chatModify: (mod: import("@adiwajshing/baileys").ChatModification, jid: string) => Promise<void>;
+    resyncMainAppState: (ctx?: import("@adiwajshing/baileys").InitialReceivedChatsState | undefined) => Promise<void>;
     type: "md";
     ws: any;
     ev: import("@adiwajshing/baileys").BaileysEventEmitter & {
-        process(handler: (events: Partial<import("@adiwajshing/baileys").BaileysEventMap>) => void | Promise<void>): () => void;
-        buffer(): void;
-        createBufferedFunction<A extends any[], T_1>(work: (...args: A) => Promise<T_1>): (...args: A) => Promise<T_1>;
-        flush(force?: boolean | undefined): boolean;
-        isBuffering(): boolean;
+        process(handler: (events: Partial<import("@adiwajshing/baileys").BaileysEventMap<import("@adiwajshing/baileys").AuthenticationCreds>>) => void | Promise<void>): () => void;
+        buffer(): boolean;
+        flush(): Promise<void>;
+        processInBuffer(task: Promise<any>): any;
     };
     authState: {
         creds: import("@adiwajshing/baileys").AuthenticationCreds;
@@ -197,11 +193,10 @@ export declare const startWhatsapp: (sessionId?: string) => Promise<{
     waitForSocketOpen: () => Promise<void>;
     sendRawMessage: (data: Buffer | Uint8Array) => Promise<void>;
     sendNode: (frame: import("@adiwajshing/baileys").BinaryNode) => Promise<void>;
-    logout: (msg?: string | undefined) => Promise<void>;
+    logout: () => Promise<void>;
     end: (error: Error | undefined) => void;
     onUnexpectedError: (error: Error, msg: string) => void;
     uploadPreKeys: (count?: number | undefined) => Promise<void>;
-    uploadPreKeysToServerIfRequired: () => Promise<void>;
     waitForConnectionUpdate: (check: (u: Partial<import("@adiwajshing/baileys").ConnectionState>) => boolean | undefined, timeoutMs?: number | undefined) => Promise<void>;
 }>;
 export declare const deleteSession: (sessionId: string) => void;
