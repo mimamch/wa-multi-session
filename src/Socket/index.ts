@@ -74,7 +74,7 @@ export const startSession = async (
     });
     return sock;
   };
-  return await startSocket();
+  return startSocket();
 };
 
 /**
