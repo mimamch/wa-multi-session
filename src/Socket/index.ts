@@ -41,6 +41,12 @@ export const startSession = async (sessionId = "mysession") => {
       if (events["connection.update"]) {
         const update = events["connection.update"];
         const { connection, lastDisconnect } = update;
+        if (update.qr) {
+          callback.get(CALLBACK_KEY.ON_QR)?.({
+            sessionId,
+            qr: update.qr,
+          });
+        }
         if (connection === "close") {
           if (
             (lastDisconnect?.error as Boom).output.statusCode !==
@@ -121,4 +127,9 @@ loadSessions();
 
 export const onMessageReceived = (listener: (msg: MessageReceived) => any) => {
   callback.set(CALLBACK_KEY.ON_MESSAGE_RECEIVED, listener);
+};
+export const onQRUpdated = (
+  listener: ({ sessionId, qr }: { sessionId: string; qr: string }) => any
+) => {
+  callback.set(CALLBACK_KEY.ON_QR, listener);
 };

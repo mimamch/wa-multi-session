@@ -118,6 +118,14 @@ whatsapp.onMessageReceived((msg) => {
 });
 ```
 
+Add Listener/Callback When QR Printed
+
+```ts
+whatsapp.onQRUpdated(({ sessionId, qr }) => {
+  console.log(qr);
+});
+```
+
 ## Handling Incoming Message Examples
 
 ```ts
