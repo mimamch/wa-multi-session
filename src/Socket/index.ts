@@ -8,7 +8,7 @@ import pino from "pino";
 import path from "path";
 import { Boom } from "@hapi/boom";
 import fs from "fs";
-import type { MessageReceived } from "../Types";
+import type { MessageReceived, StartSessionParams } from "../Types";
 import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
 
 const msgRetryCounterMap = {};
@@ -16,7 +16,10 @@ const sessions: Map<string, WASocket> = new Map();
 
 const callback: Map<string, Function> = new Map();
 
-export const startSession = async (sessionId = "mysession") => {
+export const startSession = async (
+  sessionId = "mysession",
+  options: StartSessionParams = { printQR: false }
+) => {
   if (checkIsAvailableCreds(sessionId))
     throw new Error(Messages.sessionAlreadyExist(sessionId));
   const logger = pino({ level: "error" });
@@ -29,7 +32,7 @@ export const startSession = async (sessionId = "mysession") => {
     );
     const sock: WASocket = makeWASocket({
       version,
-      printQRInTerminal: true,
+      printQRInTerminal: options.printQR,
       auth: state,
       logger,
       msgRetryCounterMap,

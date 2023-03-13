@@ -22,3 +22,7 @@ export interface SendReadTypes {
 export interface MessageReceived extends proto.IWebMessageInfo {
   sessionId: string;
 }
+
+export interface StartSessionParams {
+  printQR: boolean;
+}
