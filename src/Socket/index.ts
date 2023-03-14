@@ -25,7 +25,6 @@ export const startSession = async (
   const logger = pino({ level: "error" });
 
   const { version, isLatest } = await fetchLatestBaileysVersion();
-
   const startSocket = async () => {
     const { state, saveCreds } = await useMultiFileAuthState(
       path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
@@ -37,6 +36,7 @@ export const startSession = async (
       logger,
       msgRetryCounterMap,
       markOnlineOnConnect: false,
+      qrTimeout: 50000,
     });
     sessions.set(sessionId, { ...sock });
 
