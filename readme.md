@@ -149,6 +149,16 @@ whatsapp.onMessageReceived(async (msg) => {
 });
 ```
 
+## Optional Configuration Usage/Examples
+
+Set custom credentials directory
+
+```ts
+// default dir is "wa_credentials"
+whatsapp.setCredentialsDir("my_custom_dir");
+// or : credentials/mycreds
+```
+
 ## Authors
 
 - [@mimamch](https://www.github.com/mimamch)

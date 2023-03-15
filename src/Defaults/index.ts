@@ -1,6 +1,6 @@
-export enum CREDENTIALS {
-  DIR_NAME = "wa_credentials",
-  PREFIX = "_credentials",
+export abstract class CREDENTIALS {
+  static DIR_NAME: string = "wa_credentials";
+  static PREFIX: string = "_credentials";
 }
 
 export enum CALLBACK_KEY {
