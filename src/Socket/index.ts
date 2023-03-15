@@ -18,13 +18,13 @@ const callback: Map<string, Function> = new Map();
 
 export const startSession = async (
   sessionId = "mysession",
-  options: StartSessionParams = { printQR: false }
+  options: StartSessionParams = { printQR: true }
 ) => {
-  if (checkIsAvailableCreds(sessionId))
+  if (isSessionExistAndRunning(sessionId))
     throw new Error(Messages.sessionAlreadyExist(sessionId));
   const logger = pino({ level: "error" });
 
-  const { version, isLatest } = await fetchLatestBaileysVersion();
+  const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
     const { state, saveCreds } = await useMultiFileAuthState(
       path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
@@ -99,6 +99,37 @@ export const getAllSession = (): string[] => Array.from(sessions.keys());
 export const getSession = (key: string): WASocket | undefined =>
   sessions.get(key) as WASocket;
 
+const isSessionExistAndRunning = (sessionId: string): boolean => {
+  if (
+    fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
+    fs.existsSync(
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+    ) &&
+    fs.readdirSync(
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+    ).length &&
+    getSession(sessionId)
+  ) {
+    return true;
+  }
+  return false;
+};
+const shouldLoadSession = (sessionId: string): boolean => {
+  if (
+    fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
+    fs.existsSync(
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+    ) &&
+    fs.readdirSync(
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+    ).length &&
+    !getSession(sessionId)
+  ) {
+    return true;
+  }
+  return false;
+};
+
 const loadSessions = async () => {
   if (!fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME))) {
     fs.mkdirSync(path.resolve(CREDENTIALS.DIR_NAME));
@@ -108,22 +139,11 @@ const loadSessions = async () => {
       throw err;
     }
     for (const dir of dirs) {
-      startSession(dir.split("_")[0]);
+      const sessionId = dir.split("_")[0];
+      if (!shouldLoadSession(sessionId)) continue;
+      startSession(sessionId);
     }
   });
-};
-
-const checkIsAvailableCreds = (sessionId: string): boolean => {
-  if (
-    fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
-    fs.existsSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ) &&
-    getSession(sessionId)
-  ) {
-    return true;
-  }
-  return false;
 };
 
 loadSessions();
