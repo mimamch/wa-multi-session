@@ -61,9 +61,7 @@ export const startSession = async (
           }
         }
         if (connection == "open") {
-          callback.get(CALLBACK_KEY.ON_CONNECTED)?.({
-            sessionId,
-          });
+          callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
         }
       }
       if (events["creds.update"]) {
@@ -158,8 +156,6 @@ export const onQRUpdated = (
 ) => {
   callback.set(CALLBACK_KEY.ON_QR, listener);
 };
-export const onConnected = (
-  listener: ({ sessionId }: { sessionId: string }) => any
-) => {
+export const onConnected = (listener: (sessionId: string) => any) => {
   callback.set(CALLBACK_KEY.ON_QR, listener);
 };

@@ -129,7 +129,7 @@ whatsapp.onQRUpdated(({ sessionId, qr }) => {
 Add Listener/Callback When Session Connected
 
 ```ts
-whatsapp.onConnected(({ sessionId }) => {
+whatsapp.onConnected((sessionId) => {
   console.log("session connected :" + sessionId);
 });
 ```
