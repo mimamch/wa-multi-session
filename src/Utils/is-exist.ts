@@ -15,7 +15,7 @@ export const isExist = async ({
       isGroup: isGroup,
     });
     if (!isGroup) {
-      const one = (await session.onWhatsApp(receiver))[0].exists;
+      const one = Boolean((await session?.onWhatsApp(receiver))?.[0]?.exists);
       return one;
     } else {
       return Boolean((await session.groupMetadata(receiver)).id);
