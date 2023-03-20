@@ -58,6 +58,7 @@ export const startSession = async (
             startSocket();
           } else {
             deleteSession(sessionId);
+            callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
           }
         }
         if (connection == "open") {
@@ -158,4 +159,7 @@ export const onQRUpdated = (
 };
 export const onConnected = (listener: (sessionId: string) => any) => {
   callback.set(CALLBACK_KEY.ON_CONNECTED, listener);
+};
+export const onDisconnected = (listener: (sessionId: string) => any) => {
+  callback.set(CALLBACK_KEY.ON_DISCONNECTED, listener);
 };
