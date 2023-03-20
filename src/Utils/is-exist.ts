@@ -21,6 +21,6 @@ export const isExist = async ({
       return Boolean((await session.groupMetadata(receiver)).id);
     }
   } catch (error) {
-    return false;
+    throw error;
   }
 };
