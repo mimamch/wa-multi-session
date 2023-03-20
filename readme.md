@@ -19,7 +19,7 @@ Then import your code
 Using JS Module
 
 ```ts
-import whatsapp from "wa-multi-session";
+import * as whatsapp from "wa-multi-session";
 ```
 
 or using CommonJS
@@ -123,6 +123,14 @@ Add Listener/Callback When QR Printed
 ```ts
 whatsapp.onQRUpdated(({ sessionId, qr }) => {
   console.log(qr);
+});
+```
+
+Add Listener/Callback When Session Connected
+
+```ts
+whatsapp.onConnected(({ sessionId }) => {
+  console.log("session connected :" + sessionId);
 });
 ```
 

@@ -61,7 +61,9 @@ export const startSession = async (
           }
         }
         if (connection == "open") {
-          console.log("Whatsapp Session Connected: ", sessionId);
+          callback.get(CALLBACK_KEY.ON_CONNECTED)?.({
+            sessionId,
+          });
         }
       }
       if (events["creds.update"]) {
@@ -153,6 +155,11 @@ export const onMessageReceived = (listener: (msg: MessageReceived) => any) => {
 };
 export const onQRUpdated = (
   listener: ({ sessionId, qr }: { sessionId: string; qr: string }) => any
+) => {
+  callback.set(CALLBACK_KEY.ON_QR, listener);
+};
+export const onConnected = (
+  listener: ({ sessionId }: { sessionId: string }) => any
 ) => {
   callback.set(CALLBACK_KEY.ON_QR, listener);
 };
