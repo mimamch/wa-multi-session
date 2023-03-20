@@ -3,7 +3,10 @@ import { SendMessageTypes } from "../Types";
 export const phoneToJid = ({
   to,
   isGroup = false,
-}: SendMessageTypes): string => {
+}: {
+  to: string | number;
+  isGroup?: boolean;
+}): string => {
   if (!to) throw new Error('parameter "to" is required');
   let number = to.toString();
   if (isGroup) {

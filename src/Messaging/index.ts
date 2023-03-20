@@ -21,7 +21,7 @@ export const sendTextMessage = async ({
   const session = getSession(sessionId);
   if (!session) throw new Error(Messages.sessionNotFound(sessionId));
   const oldPhone = to;
-  to = phoneToJid({ to, isGroup, sessionId });
+  to = phoneToJid({ to, isGroup });
   const isRegistered = await isExist({
     sessionId,
     to,
@@ -51,7 +51,7 @@ export const sendImage = async ({
   const session = getSession(sessionId);
   if (!session) throw new Error(Messages.sessionNotFound(sessionId));
   const oldPhone = to;
-  to = phoneToJid({ to, isGroup, sessionId });
+  to = phoneToJid({ to, isGroup });
   const isRegistered = await isExist({
     sessionId,
     to,
@@ -88,7 +88,7 @@ export const sendVideo = async ({
   const session = getSession(sessionId);
   if (!session) throw new Error(Messages.sessionNotFound(sessionId));
   const oldPhone = to;
-  to = phoneToJid({ to, isGroup, sessionId });
+  to = phoneToJid({ to, isGroup });
   const isRegistered = await isExist({
     sessionId,
     to,
@@ -132,7 +132,7 @@ export const sendTyping = async ({
   isGroup = false,
 }: SendTypingTypes) => {
   const oldPhone = to;
-  to = phoneToJid({ to, isGroup, sessionId });
+  to = phoneToJid({ to, isGroup });
   const session = getSession(sessionId);
   if (!session) throw new Error(Messages.sessionNotFound(sessionId));
   const isRegistered = await isExist({
