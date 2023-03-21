@@ -1,4 +1,5 @@
 import makeWASocket, {
+  Browsers,
   DisconnectReason,
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
@@ -16,9 +17,11 @@ const sessions: Map<string, WASocket> = new Map();
 
 const callback: Map<string, Function> = new Map();
 
+const retryCount: Map<string, number> = new Map();
+
 export const startSession = async (
   sessionId = "mysession",
-  options: StartSessionParams = { printQR: true }
+  options: StartSessionParams = { printQR: false }
 ) => {
   if (isSessionExistAndRunning(sessionId))
     throw new Error(Messages.sessionAlreadyExist(sessionId));
@@ -36,49 +39,64 @@ export const startSession = async (
       logger,
       msgRetryCounterMap,
       markOnlineOnConnect: false,
-      qrTimeout: 50000,
+      // qrTimeout: 100,
+      browser: Browsers.ubuntu("Chrome"),
     });
     sessions.set(sessionId, { ...sock });
-
-    sock.ev.process(async (events) => {
-      if (events["connection.update"]) {
-        const update = events["connection.update"];
-        const { connection, lastDisconnect } = update;
-        if (update.qr) {
-          callback.get(CALLBACK_KEY.ON_QR)?.({
-            sessionId,
-            qr: update.qr,
-          });
-        }
-        if (connection == "connecting") {
-          callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
-        }
-        if (connection === "close") {
-          callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
-          if (
-            (lastDisconnect?.error as Boom).output.statusCode !==
-              DisconnectReason.loggedOut ||
-            (lastDisconnect?.error as Boom).output.statusCode !==
-              DisconnectReason.timedOut
-          ) {
-            startSocket();
-          } else {
-            deleteSession(sessionId);
+    try {
+      sock.ev.process(async (events) => {
+        if (events["connection.update"]) {
+          const update = events["connection.update"];
+          const { connection, lastDisconnect } = update;
+          if (update.qr) {
+            callback.get(CALLBACK_KEY.ON_QR)?.({
+              sessionId,
+              qr: update.qr,
+            });
+          }
+          if (connection == "connecting") {
+            callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
+          }
+          if (connection === "close") {
+            let retryAttempt = retryCount.get(sessionId) ?? 0;
+            const shouldRetry = retryAttempt < 5;
+            if (
+              // ((lastDisconnect?.error as Boom).output.statusCode !==
+              //   DisconnectReason.loggedOut ||
+              //   (lastDisconnect?.error as Boom).output.statusCode !==
+              //     DisconnectReason.timedOut) &&
+              (lastDisconnect?.error as Boom).output.statusCode ==
+                DisconnectReason.restartRequired &&
+              shouldRetry
+            ) {
+              retryAttempt = retryAttempt + 1;
+              retryCount.set(sessionId, retryAttempt);
+              startSocket();
+            } else {
+              callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
+              deleteSession(sessionId);
+            }
+          }
+          if (connection == "open") {
+            callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
           }
         }
-        if (connection == "open") {
-          callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
+        if (events["creds.update"]) {
+          await saveCreds();
         }
-      }
-      if (events["creds.update"]) {
-        await saveCreds();
-      }
-      if (events["messages.upsert"]) {
-        const msg = events["messages.upsert"].messages?.[0];
-        callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({ sessionId, ...msg });
-      }
-    });
-    return sock;
+        if (events["messages.upsert"]) {
+          const msg = events["messages.upsert"].messages?.[0];
+          callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({
+            sessionId,
+            ...msg,
+          });
+        }
+      });
+      return sock;
+    } catch (error) {
+      console.log("SOCKET ERROR", error);
+      return sock;
+    }
   };
   return startSocket();
 };
@@ -88,9 +106,12 @@ export const startSession = async (
  */
 export const startWhatsapp = startSession;
 
-export const deleteSession = (sessionId: string) => {
+export const deleteSession = async (sessionId: string) => {
   const session = getSession(sessionId);
-  session?.logout();
+  try {
+    session?.end(undefined);
+    await session?.logout();
+  } catch (error) {}
   sessions.delete(sessionId);
   const dir = path.resolve(
     CREDENTIALS.DIR_NAME,
