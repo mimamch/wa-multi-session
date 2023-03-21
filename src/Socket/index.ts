@@ -53,7 +53,9 @@ export const startSession = async (
         if (connection === "close") {
           if (
             (lastDisconnect?.error as Boom).output.statusCode !==
-            DisconnectReason.loggedOut
+              DisconnectReason.loggedOut ||
+            (lastDisconnect?.error as Boom).output.statusCode !==
+              DisconnectReason.timedOut
           ) {
             startSocket();
           } else {
