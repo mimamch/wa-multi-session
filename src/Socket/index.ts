@@ -51,6 +51,7 @@ export const startSession = async (
           });
         }
         if (connection === "close") {
+          callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
           if (
             (lastDisconnect?.error as Boom).output.statusCode !==
               DisconnectReason.loggedOut ||
@@ -60,7 +61,6 @@ export const startSession = async (
             startSocket();
           } else {
             deleteSession(sessionId);
-            callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
           }
         }
         if (connection == "open") {
