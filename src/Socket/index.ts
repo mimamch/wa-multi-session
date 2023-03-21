@@ -50,6 +50,9 @@ export const startSession = async (
             qr: update.qr,
           });
         }
+        if (connection == "connecting") {
+          callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
+        }
         if (connection === "close") {
           callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
           if (
@@ -164,4 +167,7 @@ export const onConnected = (listener: (sessionId: string) => any) => {
 };
 export const onDisconnected = (listener: (sessionId: string) => any) => {
   callback.set(CALLBACK_KEY.ON_DISCONNECTED, listener);
+};
+export const onConnecting = (listener: (sessionId: string) => any) => {
+  callback.set(CALLBACK_KEY.ON_CONNECTING, listener);
 };

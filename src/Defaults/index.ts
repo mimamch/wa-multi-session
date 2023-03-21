@@ -8,6 +8,7 @@ export enum CALLBACK_KEY {
   ON_QR = "on-qr",
   ON_CONNECTED = "on-connected",
   ON_DISCONNECTED = "on-disconnected",
+  ON_CONNECTING = "on-connecting",
 }
 
 export abstract class Messages {
