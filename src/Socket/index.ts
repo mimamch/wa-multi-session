@@ -60,14 +60,10 @@ export const startSession = async (
           if (connection === "close") {
             let retryAttempt = retryCount.get(sessionId) ?? 0;
             const shouldRetry = retryAttempt < 5;
+            const code = (lastDisconnect?.error as Boom).output.statusCode;
             if (
-              // ((lastDisconnect?.error as Boom).output.statusCode !==
-              //   DisconnectReason.loggedOut ||
-              //   (lastDisconnect?.error as Boom).output.statusCode !==
-              //     DisconnectReason.timedOut) &&
-              (lastDisconnect?.error as Boom).output.statusCode ==
-                DisconnectReason.restartRequired &&
-              shouldRetry
+              code == DisconnectReason.restartRequired ||
+              (code !== DisconnectReason.loggedOut && shouldRetry)
             ) {
               retryAttempt = retryAttempt + 1;
               retryCount.set(sessionId, retryAttempt);
