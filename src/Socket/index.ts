@@ -58,19 +58,16 @@ export const startSession = async (
             callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
           }
           if (connection === "close") {
-            let retryAttempt = retryCount.get(sessionId) ?? 0;
-            const shouldRetry = retryAttempt < 5;
+            // let retryAttempt = retryCount.get(sessionId) ?? 0;
+            // const shouldRetry = retryAttempt < 5;
             const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
-            if (
-              code == DisconnectReason.restartRequired ||
-              (code != DisconnectReason.loggedOut && shouldRetry)
-            ) {
-              retryAttempt = retryAttempt + 1;
-              retryCount.set(sessionId, retryAttempt);
+            if (code !== DisconnectReason.loggedOut) {
+              // retryAttempt = retryAttempt + 1;
+              // retryCount.set(sessionId, retryAttempt);
               startSocket();
             } else {
-              callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
               deleteSession(sessionId);
+              callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
             }
           }
           if (connection == "open") {
