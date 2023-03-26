@@ -58,12 +58,17 @@ export const startSession = async (
             callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
           }
           if (connection === "close") {
-            // let retryAttempt = retryCount.get(sessionId) ?? 0;
-            // const shouldRetry = retryAttempt < 5;
             const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
-            if (code !== DisconnectReason.loggedOut) {
-              // retryAttempt = retryAttempt + 1;
-              // retryCount.set(sessionId, retryAttempt);
+            let retryAttempt = retryCount.get(sessionId) ?? 0;
+            const shouldRetry =
+              code != DisconnectReason.loggedOut &&
+              (code == DisconnectReason.restartRequired || retryAttempt < 10);
+            code != DisconnectReason.restartRequired && retryAttempt++;
+            console.log(retryAttempt);
+            console.log(shouldRetry);
+            console.log(DisconnectReason[code]);
+            if (shouldRetry) {
+              retryCount.set(sessionId, retryAttempt);
               startSocket();
             } else {
               deleteSession(sessionId);
@@ -102,9 +107,9 @@ export const startWhatsapp = startSession;
 export const deleteSession = async (sessionId: string) => {
   const session = getSession(sessionId);
   try {
-    session?.end(undefined);
     await session?.logout();
   } catch (error) {}
+  session?.end(undefined);
   sessions.delete(sessionId);
   const dir = path.resolve(
     CREDENTIALS.DIR_NAME,
@@ -150,7 +155,7 @@ const shouldLoadSession = (sessionId: string): boolean => {
   return false;
 };
 
-const loadSessions = async () => {
+const loadSessions = () => {
   if (!fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME))) {
     fs.mkdirSync(path.resolve(CREDENTIALS.DIR_NAME));
   }
