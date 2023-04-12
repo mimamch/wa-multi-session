@@ -1,6 +1,6 @@
 {
   "name": "wa-multi-session",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "description": "Multi Session Whatsapp Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,10 +11,7 @@
     "start": "tsc && node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": {
-    "name": "mimamch",
-    "email": "mimamch28@gmail.com"
-  },
+  "author": "mimamch",
   "license": "ISC",
   "dependencies": {
     "@adiwajshing/baileys": "^4.3.0",

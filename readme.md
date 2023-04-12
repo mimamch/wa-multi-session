@@ -157,6 +157,27 @@ whatsapp.onMessageReceived(async (msg) => {
 });
 ```
 
+## Save Media Message (Image, Video, Document)
+
+```ts
+wa.onMessageReceived(async (msg) => {
+  if (msg.message?.imageMessage) {
+    // save image
+    msg.saveImage("./myimage.jpg");
+  }
+
+  if (msg.message?.videoMessage) {
+    // save video
+    msg.saveVideo("./myvideo.mp4");
+  }
+
+  if (msg.message?.documentMessage) {
+    // save document
+    msg.saveDocument("./mydocument"); // without extension
+  }
+});
+```
+
 ## Optional Configuration Usage/Examples
 
 Set custom credentials directory

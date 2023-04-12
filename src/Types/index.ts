@@ -20,9 +20,31 @@ export interface SendReadTypes {
 }
 
 export interface MessageReceived extends proto.IWebMessageInfo {
+  /**
+   * Your Session ID
+   */
   sessionId: string;
+
+  /**
+   * @param path save image location path with extension
+   * @example "./myimage.jpg"
+   */
+  saveImage: (path: string) => Promise<void>;
+  /**
+   * @param path save video location path with extension
+   * @example "./myvideo.mp4"
+   */
+  saveVideo: (path: string) => Promise<void>;
+  /**
+   * @param path save image location path without extension
+   * @example "./mydocument"
+   */
+  saveDocument: (path: string) => Promise<void>;
 }
 
 export interface StartSessionParams {
+  /**
+   * Print QR Code into Terminal
+   */
   printQR: boolean;
 }

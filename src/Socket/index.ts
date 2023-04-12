@@ -11,6 +11,11 @@ import { Boom } from "@hapi/boom";
 import fs from "fs";
 import type { MessageReceived, StartSessionParams } from "../Types";
 import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
+import {
+  saveDocumentHandler,
+  saveImageHandler,
+  saveVideoHandler,
+} from "../Utils/save-media";
 
 const msgRetryCounterMap = {};
 const sessions: Map<string, WASocket> = new Map();
@@ -25,7 +30,7 @@ export const startSession = async (
 ) => {
   if (isSessionExistAndRunning(sessionId))
     throw new Error(Messages.sessionAlreadyExist(sessionId));
-  const logger = pino({ level: "error" });
+  const logger = pino({ level: "silent" });
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
@@ -39,7 +44,6 @@ export const startSession = async (
       logger,
       msgRetryCounterMap,
       markOnlineOnConnect: false,
-      // qrTimeout: 100,
       browser: Browsers.ubuntu("Chrome"),
     });
     sessions.set(sessionId, { ...sock });
@@ -64,9 +68,6 @@ export const startSession = async (
               code != DisconnectReason.loggedOut &&
               (code == DisconnectReason.restartRequired || retryAttempt < 10);
             code != DisconnectReason.restartRequired && retryAttempt++;
-            console.log(retryAttempt);
-            console.log(shouldRetry);
-            console.log(DisconnectReason[code]);
             if (shouldRetry) {
               retryCount.set(sessionId, retryAttempt);
               startSocket();
@@ -83,16 +84,20 @@ export const startSession = async (
           await saveCreds();
         }
         if (events["messages.upsert"]) {
-          const msg = events["messages.upsert"].messages?.[0];
+          const msg = events["messages.upsert"]
+            .messages?.[0] as MessageReceived;
+          msg.sessionId = sessionId;
+          msg.saveImage = (path) => saveImageHandler(msg, path);
+          msg.saveVideo = (path) => saveVideoHandler(msg, path);
+          msg.saveDocument = (path) => saveDocumentHandler(msg, path);
           callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({
-            sessionId,
             ...msg,
           });
         }
       });
       return sock;
     } catch (error) {
-      console.log("SOCKET ERROR", error);
+      // console.log("SOCKET ERROR", error);
       return sock;
     }
   };
