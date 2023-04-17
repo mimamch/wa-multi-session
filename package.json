@@ -1,6 +1,6 @@
 {
   "name": "wa-multi-session",
-  "version": "1.9.0",
+  "version": "2.0.0",
   "description": "Multi Session Whatsapp Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,6 +8,7 @@
     "dist/**/*"
   ],
   "scripts": {
+    "build": "tsc",
     "start": "tsc && node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

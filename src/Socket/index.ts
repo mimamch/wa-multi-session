@@ -160,7 +160,7 @@ const shouldLoadSession = (sessionId: string): boolean => {
   return false;
 };
 
-const loadSessions = () => {
+export const loadSessionsFromStorage = () => {
   if (!fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME))) {
     fs.mkdirSync(path.resolve(CREDENTIALS.DIR_NAME));
   }
@@ -175,8 +175,6 @@ const loadSessions = () => {
     }
   });
 };
-
-loadSessions();
 
 export const onMessageReceived = (listener: (msg: MessageReceived) => any) => {
   callback.set(CALLBACK_KEY.ON_MESSAGE_RECEIVED, listener);

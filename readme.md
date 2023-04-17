@@ -53,6 +53,13 @@ const session = whatsapp.getSession("mysessionid");
 // returning session data
 ```
 
+Load Session From Storage / Load Saved Session
+
+```ts
+whatsapp.loadSessionsFromStorage();
+// Start saved session without scan again
+```
+
 ## Messaging Usage/Examples
 
 Send Text Message
@@ -187,6 +194,10 @@ Set custom credentials directory
 whatsapp.setCredentialsDir("my_custom_dir");
 // or : credentials/mycreds
 ```
+
+## Change Log v2.0.0
+
+- Disable auto load session from storage
 
 ## Authors
 
