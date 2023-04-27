@@ -64,19 +64,24 @@ export const startSession = async (
           if (connection === "close") {
             const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
             let retryAttempt = retryCount.get(sessionId) ?? 0;
-            const shouldRetry =
-              code != DisconnectReason.loggedOut &&
-              (code == DisconnectReason.restartRequired || retryAttempt < 10);
-            code != DisconnectReason.restartRequired && retryAttempt++;
+            let shouldRetry;
+            if (code != DisconnectReason.loggedOut && retryAttempt < 10) {
+              shouldRetry = true;
+            }
+            if (shouldRetry) {
+              retryAttempt++;
+            }
             if (shouldRetry) {
               retryCount.set(sessionId, retryAttempt);
               startSocket();
             } else {
+              retryCount.delete(sessionId);
               deleteSession(sessionId);
               callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
             }
           }
           if (connection == "open") {
+            retryCount.delete(sessionId);
             callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
           }
         }
