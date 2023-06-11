@@ -1,4 +1,4 @@
-import { proto, WASocket } from "@adiwajshing/baileys";
+import { proto, WASocket } from "@whiskeysockets/baileys";
 import { Messages } from "../Defaults";
 import { getSession } from "../Socket";
 import {

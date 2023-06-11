@@ -1,6 +1,6 @@
 {
   "name": "wa-multi-session",
-  "version": "2.1.0",
+  "version": "3.0.1",
   "description": "Multi Session Whatsapp Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,8 +15,9 @@
   "author": "mimamch",
   "license": "ISC",
   "dependencies": {
-    "@adiwajshing/baileys": "^4.3.0",
+    "@adiwajshing/keyed-db": "^0.2.4",
     "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "^6.2.1",
     "pino": "^8.11.0",
     "qrcode-terminal": "^0.12.0"
   },

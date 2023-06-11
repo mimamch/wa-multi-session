@@ -4,7 +4,7 @@ Connecting Your app with Whatsapp Messaging
 
 Lightweight library for whatsapp. Not require Selenium or any other browser.
 
-Stand above [Baileys](https://github.com/adiwajshing/Baileys) Library.
+Stand above [Baileys](https://github.com/WhiskeySockets/Baileys) Library.
 
 ## Installation
 
@@ -195,9 +195,10 @@ whatsapp.setCredentialsDir("my_custom_dir");
 // or : credentials/mycreds
 ```
 
-## Change Log v2.0.0
+## Change Log v3.0.0 June 2023
 
-- Disable auto load session from storage
+- Fix Logout Issue
+- Switching into [@whiskeysockets/baileys](https://github.com/WhiskeySockets/Baileys)
 
 ## Authors
 

@@ -4,7 +4,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
   WASocket,
-} from "@adiwajshing/baileys";
+} from "@whiskeysockets/baileys";
 import pino from "pino";
 import path from "path";
 import { Boom } from "@hapi/boom";
@@ -17,7 +17,6 @@ import {
   saveVideoHandler,
 } from "../Utils/save-media";
 
-const msgRetryCounterMap = {};
 const sessions: Map<string, WASocket> = new Map();
 
 const callback: Map<string, Function> = new Map();
@@ -27,7 +26,7 @@ const retryCount: Map<string, number> = new Map();
 export const startSession = async (
   sessionId = "mysession",
   options: StartSessionParams = { printQR: false }
-) => {
+): Promise<WASocket> => {
   if (isSessionExistAndRunning(sessionId))
     throw new Error(Messages.sessionAlreadyExist(sessionId));
   const logger = pino({ level: "silent" });
@@ -42,7 +41,6 @@ export const startSession = async (
       printQRInTerminal: options.printQR,
       auth: state,
       logger,
-      msgRetryCounterMap,
       markOnlineOnConnect: false,
       browser: Browsers.ubuntu("Chrome"),
     });
@@ -90,7 +88,7 @@ export const startSession = async (
         }
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
-            .messages?.[0] as MessageReceived;
+            .messages?.[0] as unknown as MessageReceived;
           msg.sessionId = sessionId;
           msg.saveImage = (path) => saveImageHandler(msg, path);
           msg.saveVideo = (path) => saveVideoHandler(msg, path);
