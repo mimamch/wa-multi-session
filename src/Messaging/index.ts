@@ -1,4 +1,4 @@
-import { proto, WASocket } from "@whiskeysockets/baileys";
+import { proto } from "@whiskeysockets/baileys";
 import { Messages } from "../Defaults";
 import { getSession } from "../Socket";
 import {
@@ -10,6 +10,7 @@ import {
 import { phoneToJid } from "../Utils";
 import { createDelay } from "../Utils/create-delay";
 import { isExist } from "../Utils/is-exist";
+import mime from "mime";
 
 export const sendTextMessage = async ({
   sessionId,
@@ -107,6 +108,52 @@ export const sendVideo = async ({
               url: media,
             }
           : media,
+      caption: text,
+    },
+    {
+      quoted: props.answering,
+    }
+  );
+};
+export const sendDocument = async ({
+  sessionId,
+  to,
+  text = "",
+  isGroup = false,
+  media,
+  filename,
+  ...props
+}: SendMediaTypes & {
+  media: Buffer;
+  filename: string;
+}): Promise<proto.WebMessageInfo | undefined> => {
+  const session = getSession(sessionId);
+  if (!session) throw new Error(Messages.sessionNotFound(sessionId));
+  const oldPhone = to;
+  to = phoneToJid({ to, isGroup });
+  const isRegistered = await isExist({
+    sessionId,
+    to,
+    isGroup,
+  });
+  if (!isRegistered) {
+    throw new Error(`${oldPhone} is not registered on Whatsapp`);
+  }
+  if (!media || !Buffer.isBuffer(media)) {
+    throw new Error(`Media File must be Buffer`);
+  }
+
+  const mimetype = mime.getType(filename);
+  if (!mimetype) {
+    throw new Error(`Filename must include valid extension`);
+  }
+
+  return await session.sendMessage(
+    to,
+    {
+      fileName: filename,
+      document: media,
+      mimetype: mimetype,
       caption: text,
     },
     {

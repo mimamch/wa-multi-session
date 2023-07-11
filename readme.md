@@ -11,7 +11,7 @@ Stand above [Baileys](https://github.com/WhiskeySockets/Baileys) Library.
 Install package using npm
 
 ```
-npm install wa-multi-session
+npm install wa-multi-session@latest
 ```
 
 Then import your code
@@ -75,7 +75,7 @@ await whatsapp.sendTextMessage({
 Send Image
 
 ```ts
-const image = fs.readFileSync("./myimage.png");
+const image = fs.readFileSync("./myimage.png"); // return Buffer
 const send = await whatsapp.sendImage({
   sessionId: "session1",
   to: "6281234567890",
@@ -87,12 +87,26 @@ const send = await whatsapp.sendImage({
 Send Video
 
 ```ts
-const video = fs.readFileSync("./myvideo.mp4");
+const video = fs.readFileSync("./myvideo.mp4"); // return Buffer
 const send = await whatsapp.sendImage({
   sessionId: "session1",
   to: "6281234567890",
   text: "My Video Caption",
   media: video, // can from URL too
+});
+```
+
+Send Document File
+
+```ts
+const filename = "mydocument.docx";
+const document = fs.readFileSync(filename); // return Buffer
+const send = await whatsapp.sendDocument({
+  sessionId: "session1",
+  to: "6281234567890",
+  filename: filename,
+  media: document,
+  text: "Hei, Check this Document",
 });
 ```
 
@@ -195,7 +209,13 @@ whatsapp.setCredentialsDir("my_custom_dir");
 // or : credentials/mycreds
 ```
 
-## Change Log v3.0.0 June 2023
+## Change Log
+
+v3.1.2 July 2023 (LATEST)
+
+- Add send document message
+
+v3.0.0 June 2023
 
 - Fix Logout Issue
 - Switching into [@whiskeysockets/baileys](https://github.com/WhiskeySockets/Baileys)

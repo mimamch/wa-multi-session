@@ -25,7 +25,7 @@ const retryCount: Map<string, number> = new Map();
 
 export const startSession = async (
   sessionId = "mysession",
-  options: StartSessionParams = { printQR: false }
+  options: StartSessionParams = { printQR: true }
 ): Promise<WASocket> => {
   if (isSessionExistAndRunning(sessionId))
     throw new Error(Messages.sessionAlreadyExist(sessionId));
