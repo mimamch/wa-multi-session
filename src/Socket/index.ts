@@ -16,6 +16,7 @@ import {
   saveImageHandler,
   saveVideoHandler,
 } from "../Utils/save-media";
+import { WhatsappError } from "../Error";
 
 const sessions: Map<string, WASocket> = new Map();
 
@@ -28,7 +29,7 @@ export const startSession = async (
   options: StartSessionParams = { printQR: true }
 ): Promise<WASocket> => {
   if (isSessionExistAndRunning(sessionId))
-    throw new Error(Messages.sessionAlreadyExist(sessionId));
+    throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
   const logger = pino({ level: "silent" });
 
   const { version } = await fetchLatestBaileysVersion();

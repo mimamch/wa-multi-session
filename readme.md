@@ -211,7 +211,11 @@ whatsapp.setCredentialsDir("my_custom_dir");
 
 ## Change Log
 
-v3.1.2 July 2023 (LATEST)
+v3.2.0 July 2023 (LATEST)
+
+- Add error class named: WhatsappError
+
+v3.1.2 July 2023
 
 - Add send document message
 

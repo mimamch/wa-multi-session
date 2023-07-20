@@ -1,3 +1,4 @@
+import { WhatsappError } from "../Error";
 import { SendMessageTypes } from "../Types";
 
 export const phoneToJid = ({
@@ -7,7 +8,7 @@ export const phoneToJid = ({
   to: string | number;
   isGroup?: boolean;
 }): string => {
-  if (!to) throw new Error('parameter "to" is required');
+  if (!to) throw new WhatsappError('parameter "to" is required');
   let number = to.toString();
   if (isGroup) {
     number = number.replace(/\s|[+]|[-]/gim, "");
