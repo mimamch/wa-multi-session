@@ -1,3 +1,4 @@
+import { WhatsappError } from "../Error";
 import { getSession } from "../Socket";
 import { SendMessageTypes } from "../Types";
 import { phoneToJid } from "./phone-to-jid";
@@ -9,7 +10,7 @@ export const isExist = async ({
 }: SendMessageTypes): Promise<boolean> => {
   try {
     const session = getSession(sessionId);
-    if (!session) throw new Error("Session ID Not Found!");
+    if (!session) throw new WhatsappError("Session ID Not Found!");
     const receiver = phoneToJid({
       to: to,
       isGroup: isGroup,
