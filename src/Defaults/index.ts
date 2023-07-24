@@ -9,6 +9,7 @@ export enum CALLBACK_KEY {
   ON_CONNECTED = "on-connected",
   ON_DISCONNECTED = "on-disconnected",
   ON_CONNECTING = "on-connecting",
+  ON_LABEL_ASSOCIATION = "on-label-association"
 }
 
 export abstract class Messages {
