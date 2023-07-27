@@ -98,6 +98,12 @@ export const startSession = async (
             ...msg,
           });
         }
+        if (events["labels.association"]) {
+          callback.get(CALLBACK_KEY.ON_LABEL_ASSOCIATION)?.(events);
+        }
+        if (events["labels.edit"]) {
+          callback.get(CALLBACK_KEY.ON_LABEL_EDIT)?.(events);
+        }
       });
       return sock;
     } catch (error) {
@@ -196,4 +202,10 @@ export const onDisconnected = (listener: (sessionId: string) => any) => {
 };
 export const onConnecting = (listener: (sessionId: string) => any) => {
   callback.set(CALLBACK_KEY.ON_CONNECTING, listener);
+};
+export const onLabelAssociation = (listener: (sessionId: string) => any) => {
+  callback.set(CALLBACK_KEY.ON_LABEL_ASSOCIATION, listener);
+};
+export const onLabelEdit = (listener: (sessionId: string) => any) => {
+  callback.set(CALLBACK_KEY.ON_LABEL_EDIT, listener);
 };
