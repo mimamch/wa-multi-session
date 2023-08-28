@@ -4,12 +4,17 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
   WASocket,
+  WAMessageUpdate,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
 import path from "path";
 import { Boom } from "@hapi/boom";
 import fs from "fs";
-import type { MessageReceived, StartSessionParams } from "../Types";
+import type {
+  MessageReceived,
+  MessageUpdated,
+  StartSessionParams,
+} from "../Types";
 import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
 import {
   saveDocumentHandler,
@@ -17,6 +22,7 @@ import {
   saveVideoHandler,
 } from "../Utils/save-media";
 import { WhatsappError } from "../Error";
+import { parseMessageStatusCodeToReadable } from "../Utils/message-status";
 
 const sessions: Map<string, WASocket> = new Map();
 
@@ -86,6 +92,15 @@ export const startSession = async (
         }
         if (events["creds.update"]) {
           await saveCreds();
+        }
+        if (events["messages.update"]) {
+          const msg = events["messages.update"][0];
+          const data: MessageUpdated = {
+            sessionId: sessionId,
+            messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
+            ...msg,
+          };
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
         }
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
@@ -196,4 +211,8 @@ export const onDisconnected = (listener: (sessionId: string) => any) => {
 };
 export const onConnecting = (listener: (sessionId: string) => any) => {
   callback.set(CALLBACK_KEY.ON_CONNECTING, listener);
+};
+
+export const onMessageUpdate = (listener: (data: MessageUpdated) => any) => {
+  callback.set(CALLBACK_KEY.ON_MESSAGE_UPDATED, listener);
 };
