@@ -110,6 +110,18 @@ const send = await whatsapp.sendDocument({
 });
 ```
 
+Send Voice Note
+
+```ts
+const filename = "myaudio.mp3";
+const audio = fs.readFileSync(filename); // return Buffer
+const send = await whatsapp.sendVoiceNote({
+  sessionId: "session1",
+  to: "6281234567890",
+  media: audio,
+});
+```
+
 Read a Message
 
 ```ts
@@ -211,15 +223,23 @@ whatsapp.setCredentialsDir("my_custom_dir");
 
 ## Change Log
 
-v3.2.1 July 2023 (LATEST)
+### v3.3 September 2023 (LATEST)
+
+What's New:
+
+- Send Voice Note
+- Send Sticker
+- onMessageUpdate (message ack status)
+
+### v3.2.1 July 2023
 
 - Add error class named: WhatsappError
 
-v3.1.2 July 2023
+### v3.1.2 July 2023
 
 - Add send document message
 
-v3.0.0 June 2023
+### v3.0.0 June 2023
 
 - Fix Logout Issue
 - Switching into [@whiskeysockets/baileys](https://github.com/WhiskeySockets/Baileys)

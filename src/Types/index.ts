@@ -1,4 +1,4 @@
-import { proto } from "@whiskeysockets/baileys";
+import { WAMessageUpdate, proto } from "@whiskeysockets/baileys";
 
 export interface SendMessageTypes {
   to: string | number;
@@ -48,3 +48,14 @@ export interface StartSessionParams {
    */
   printQR: boolean;
 }
+
+export type MessageUpdated = WAMessageUpdate & {
+  sessionId: string;
+  messageStatus:
+    | "error"
+    | "pending"
+    | "server"
+    | "delivered"
+    | "read"
+    | "played";
+};

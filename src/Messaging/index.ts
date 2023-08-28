@@ -127,7 +127,6 @@ export const sendDocument = async ({
   filename,
   ...props
 }: SendMediaTypes & {
-  media: Buffer;
   filename: string;
 }): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
@@ -142,8 +141,8 @@ export const sendDocument = async ({
   if (!isRegistered) {
     throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
   }
-  if (!media || !Buffer.isBuffer(media)) {
-    throw new WhatsappError(`Media File must be Buffer`);
+  if (!media) {
+    throw new WhatsappError(`Invalid Media`);
   }
 
   const mimetype = mime.getType(filename);
@@ -155,9 +154,93 @@ export const sendDocument = async ({
     to,
     {
       fileName: filename,
-      document: media,
+      document:
+        typeof media == "string"
+          ? {
+              url: media,
+            }
+          : media,
       mimetype: mimetype,
       caption: text,
+    },
+    {
+      quoted: props.answering,
+    }
+  );
+};
+
+export const sendVoiceNote = async ({
+  sessionId,
+  to,
+  isGroup = false,
+  media,
+  ...props
+}: Omit<SendMediaTypes, "text">): Promise<proto.WebMessageInfo | undefined> => {
+  const session = getSession(sessionId);
+  if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
+  const oldPhone = to;
+  to = phoneToJid({ to, isGroup });
+  const isRegistered = await isExist({
+    sessionId,
+    to,
+    isGroup,
+  });
+  if (!isRegistered) {
+    throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
+  }
+  if (!media) {
+    throw new WhatsappError(`Invalid Media`);
+  }
+
+  return await session.sendMessage(
+    to,
+    {
+      audio:
+        typeof media == "string"
+          ? {
+              url: media,
+            }
+          : media,
+      ptt: true,
+    },
+    {
+      quoted: props.answering,
+    }
+  );
+};
+
+export const sendSticker = async ({
+  sessionId,
+  to,
+  isGroup,
+  media,
+  ...props
+}: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
+  const session = getSession(sessionId);
+  if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
+  const oldPhone = to;
+  to = phoneToJid({ to, isGroup });
+  const isRegistered = await isExist({
+    sessionId,
+    to,
+    isGroup,
+  });
+  if (!isRegistered) {
+    throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
+  }
+  if (!media) {
+    throw new WhatsappError(`Invalid Media`);
+  }
+
+  return await session.sendMessage(
+    to,
+    {
+      sticker:
+        typeof media == "string"
+          ? {
+              url: media,
+            }
+          : media,
     },
     {
       quoted: props.answering,
