@@ -88,7 +88,7 @@ Send Video
 
 ```ts
 const video = fs.readFileSync("./myvideo.mp4"); // return Buffer
-const send = await whatsapp.sendImage({
+const send = await whatsapp.sendVideo({
   sessionId: "session1",
   to: "6281234567890",
   text: "My Video Caption",
