@@ -1,4 +1,4 @@
-import { proto } from "@whiskeysockets/baileys";
+import { proto } from "@adiwajshing/baileys";
 import { MessageUpdated } from "../Types";
 
 export const parseMessageStatusCodeToReadable = (

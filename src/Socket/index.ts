@@ -5,7 +5,9 @@ import makeWASocket, {
   useMultiFileAuthState,
   WASocket,
   WAMessageUpdate,
-} from "@whiskeysockets/baileys";
+  jidNormalizedUser,
+  PHONENUMBER_MCC,
+} from "@adiwajshing/baileys";
 import pino from "pino";
 import path from "path";
 import { Boom } from "@hapi/boom";
@@ -25,15 +27,15 @@ import { WhatsappError } from "../Error";
 import { parseMessageStatusCodeToReadable } from "../Utils/message-status";
 
 const sessions: Map<string, WASocket> = new Map();
-
 const callback: Map<string, Function> = new Map();
-
 const retryCount: Map<string, number> = new Map();
 
 export const startSession = async (
   sessionId = "mysession",
-  options: StartSessionParams = { printQR: true }
+  options: StartSessionParams = {}
 ): Promise<WASocket> => {
+  const pairingCode = !!options.pairingNumber;
+
   if (isSessionExistAndRunning(sessionId))
     throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
   const logger = pino({ level: "silent" });
@@ -45,13 +47,38 @@ export const startSession = async (
     );
     const sock: WASocket = makeWASocket({
       version,
-      printQRInTerminal: options.printQR,
+      printQRInTerminal: !pairingCode,
       auth: state,
       logger,
       markOnlineOnConnect: false,
-      browser: Browsers.ubuntu("Chrome"),
+      browser: ["Chrome (Linux)", "", ""], // for this issues https://github.com/WhiskeySockets/Baileys/issues/328
     });
+    
+    //  if (sock.user && sock.user.id) sock.user.jid = jidNormalizedUser(sock.user.id); // not support 
     sessions.set(sessionId, { ...sock });
+
+    if (pairingCode && !sock.authState.creds.registered) {
+      let phoneNumber: string;
+
+      if (typeof options.pairingNumber === "string") {
+        phoneNumber = options.pairingNumber.replace(/[^0-9]/g, '');
+        if (!Object.keys(PHONENUMBER_MCC).some(v => phoneNumber.startsWith(v))) {
+            console.log("Start with your country's WhatsApp code, Example : 62xxx")
+         }
+      } else {
+        phoneNumber = ""; // Nilai default jika options.pairingNumber bukan string
+      }
+
+      setTimeout(async () => {
+        let code = await sock?.requestPairingCode(phoneNumber);
+        code = code?.match(/.{1,4}/g)?.join("-") || code;
+        callback.get(CALLBACK_KEY.ON_PAIR_CODE)?.({
+          sessionId,
+          PairCode: code,
+        });
+      }, 3000);
+    }
+
     try {
       sock.ev.process(async (events) => {
         if (events["connection.update"]) {
@@ -67,15 +94,55 @@ export const startSession = async (
             callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
           }
           if (connection === "close") {
-            const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
+            const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
             let retryAttempt = retryCount.get(sessionId) ?? 0;
             let shouldRetry;
-            if (code != DisconnectReason.loggedOut && retryAttempt < 10) {
+            if (reason === DisconnectReason.badSession && retryAttempt < 10) {
+              console.log(
+                "Bad Session File, Please Delete Session and Scan Again"
+              );
+            } else if (
+              reason === DisconnectReason.connectionClosed &&
+              retryAttempt < 10
+            ) {
+              console.log("Connection closed, reconnecting....");
+              shouldRetry = true;
+            } else if (
+              reason === DisconnectReason.connectionLost &&
+              retryAttempt < 10
+            ) {
+              console.log("Connection Lost from Server, reconnecting...");
+              shouldRetry = true;
+            } else if (
+              reason === DisconnectReason.connectionReplaced &&
+              retryAttempt < 10
+            ) {
+              console.log(
+                "Connection Replaced, Another New Session Opened, Please Close Current Session First"
+              );
+            } else if (
+              reason === DisconnectReason.loggedOut &&
+              retryAttempt < 10
+            ) {
+              console.log("Device Logged Out, Please Scan Again And Run.");
+            } else if (
+              reason === DisconnectReason.restartRequired &&
+              retryAttempt < 10
+            ) {
+              console.log("Restart Required, Restarting...");
+              shouldRetry = true;
+            } else if (
+              reason === DisconnectReason.timedOut &&
+              retryAttempt < 10
+            ) {
+              console.log("Connection TimedOut, Reconnecting...");
               shouldRetry = true;
             }
+            
             if (shouldRetry) {
               retryAttempt++;
             }
+
             if (shouldRetry) {
               retryCount.set(sessionId, retryAttempt);
               startSocket();
@@ -85,6 +152,7 @@ export const startSession = async (
               callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
             }
           }
+
           if (connection == "open") {
             retryCount.delete(sessionId);
             callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
@@ -116,7 +184,6 @@ export const startSession = async (
       });
       return sock;
     } catch (error) {
-      // console.log("SOCKET ERROR", error);
       return sock;
     }
   };
@@ -203,6 +270,18 @@ export const onQRUpdated = (
 ) => {
   callback.set(CALLBACK_KEY.ON_QR, listener);
 };
+export const onPairingCodeUpdated = (
+  listener: ({
+    sessionId,
+    PairCode,
+  }: {
+    sessionId: string;
+    PairCode: string;
+  }) => any
+) => {
+  callback.set(CALLBACK_KEY.ON_PAIR_CODE, listener);
+};
+
 export const onConnected = (listener: (sessionId: string) => any) => {
   callback.set(CALLBACK_KEY.ON_CONNECTED, listener);
 };
