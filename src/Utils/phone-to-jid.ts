@@ -1,5 +1,11 @@
 import { WhatsappError } from "../Error";
-import { SendMessageTypes } from "../Types";
+import { PHONENUMBER_MCC } from "@whiskeysockets/baileys";
+
+const isPhoneNumberValidCountry = (phone: string) => {
+  return Object.keys(PHONENUMBER_MCC).some((key) => {
+    return phone.startsWith(key);
+  });
+};
 
 export const phoneToJid = ({
   to,
@@ -10,6 +16,9 @@ export const phoneToJid = ({
 }): string => {
   if (!to) throw new WhatsappError('parameter "to" is required');
   let number = to.toString();
+  if (!isPhoneNumberValidCountry(number)) {
+    throw new WhatsappError("phone number must start with valid country code");
+  }
   if (isGroup) {
     number = number.replace(/\s|[+]|[-]/gim, "");
     if (!number.includes("@g.us")) number = number + "@g.us";
