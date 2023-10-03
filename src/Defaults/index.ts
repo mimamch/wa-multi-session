@@ -6,6 +6,7 @@ export abstract class CREDENTIALS {
 export enum CALLBACK_KEY {
   ON_MESSAGE_RECEIVED = "on-message-received",
   ON_QR = "on-qr",
+  ON_PAIR_CODE = "on-pairing-code",
   ON_CONNECTED = "on-connected",
   ON_DISCONNECTED = "on-disconnected",
   ON_CONNECTING = "on-connecting",

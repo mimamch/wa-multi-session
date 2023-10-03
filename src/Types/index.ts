@@ -1,4 +1,4 @@
-import { WAMessageUpdate, proto } from "@whiskeysockets/baileys";
+import { WAMessageUpdate, proto } from "@adiwajshing/baileys";
 
 export interface SendMessageTypes {
   to: string | number;
@@ -44,9 +44,11 @@ export interface MessageReceived extends proto.IWebMessageInfo {
 
 export interface StartSessionParams {
   /**
-   * Print QR Code into Terminal
+   * This pairing number is input for connection data using code 
+   * If pairing is filled in then the data that will be displayed is the OTP to connect WhatsApp to the IWebMessageInfo
+   * If the pairing number is not filled in, it will display a QR code on the terminal or in the function to display QR code buffer data.
    */
-  printQR: boolean;
+  pairingNumber?: string;
 }
 
 export type MessageUpdated = WAMessageUpdate & {
