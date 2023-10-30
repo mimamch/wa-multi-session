@@ -49,6 +49,13 @@ export interface StartSessionParams {
   printQR: boolean;
 }
 
+export interface StartSessionWithPairingCodeParams {
+  /**
+   * Phone Number with Country Code
+   */
+  phoneNumber: string;
+}
+
 export type MessageUpdated = WAMessageUpdate & {
   sessionId: string;
   messageStatus:

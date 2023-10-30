@@ -12,8 +12,8 @@ dependencies:
     specifier: ^10.0.1
     version: 10.0.1
   '@whiskeysockets/baileys':
-    specifier: ^6.2.1
-    version: 6.4.0(qrcode-terminal@0.12.0)
+    specifier: ^6.5.0
+    version: 6.5.0(qrcode-terminal@0.12.0)
   mime:
     specifier: ^3.0.0
     version: 3.0.0
@@ -154,8 +154,8 @@ packages:
       codec-parser: 2.4.3
     dev: false
 
-  /@whiskeysockets/baileys@6.4.0(qrcode-terminal@0.12.0):
-    resolution: {integrity: sha512-SdCoVpILWX7z2WEe40BwNjMqpI6Guf0gbG80NNfsJBcRcDQIS9pkmazIhTvNKytWZm7BFZR+QNKcBUxdPqdLsQ==}
+  /@whiskeysockets/baileys@6.5.0(qrcode-terminal@0.12.0):
+    resolution: {integrity: sha512-ary0RNivsrl56wnn0ta37LwVGpCDabthERCV5lHHsbhJJFfp04g6+reiQAKvxo61oYxwxKjqq33kvID+AOr++A==}
     peerDependencies:
       jimp: ^0.16.1
       link-preview-js: ^3.0.0

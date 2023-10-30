@@ -14,6 +14,7 @@ import type {
   MessageReceived,
   MessageUpdated,
   StartSessionParams,
+  StartSessionWithPairingCodeParams,
 } from "../Types";
 import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
 import {
@@ -53,6 +54,106 @@ export const startSession = async (
     });
     sessions.set(sessionId, { ...sock });
     try {
+      sock.ev.process(async (events) => {
+        if (events["connection.update"]) {
+          const update = events["connection.update"];
+          const { connection, lastDisconnect } = update;
+          if (update.qr) {
+            callback.get(CALLBACK_KEY.ON_QR)?.({
+              sessionId,
+              qr: update.qr,
+            });
+          }
+          if (connection == "connecting") {
+            callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
+          }
+          if (connection === "close") {
+            const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
+            let retryAttempt = retryCount.get(sessionId) ?? 0;
+            let shouldRetry;
+            if (code != DisconnectReason.loggedOut && retryAttempt < 10) {
+              shouldRetry = true;
+            }
+            if (shouldRetry) {
+              retryAttempt++;
+            }
+            if (shouldRetry) {
+              retryCount.set(sessionId, retryAttempt);
+              startSocket();
+            } else {
+              retryCount.delete(sessionId);
+              deleteSession(sessionId);
+              callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
+            }
+          }
+          if (connection == "open") {
+            retryCount.delete(sessionId);
+            callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
+          }
+        }
+        if (events["creds.update"]) {
+          await saveCreds();
+        }
+        if (events["messages.update"]) {
+          const msg = events["messages.update"][0];
+          const data: MessageUpdated = {
+            sessionId: sessionId,
+            messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
+            ...msg,
+          };
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
+        }
+        if (events["messages.upsert"]) {
+          const msg = events["messages.upsert"]
+            .messages?.[0] as unknown as MessageReceived;
+          msg.sessionId = sessionId;
+          msg.saveImage = (path) => saveImageHandler(msg, path);
+          msg.saveVideo = (path) => saveVideoHandler(msg, path);
+          msg.saveDocument = (path) => saveDocumentHandler(msg, path);
+          callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({
+            ...msg,
+          });
+        }
+      });
+      return sock;
+    } catch (error) {
+      // console.log("SOCKET ERROR", error);
+      return sock;
+    }
+  };
+  return startSocket();
+};
+
+export const startSessionWithPairingCode = async (
+  sessionId: string,
+  options: StartSessionWithPairingCodeParams
+): Promise<WASocket> => {
+  if (isSessionExistAndRunning(sessionId))
+    throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
+  const logger = pino({ level: "silent" });
+
+  const { version } = await fetchLatestBaileysVersion();
+  const startSocket = async () => {
+    const { state, saveCreds } = await useMultiFileAuthState(
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+    );
+    const sock: WASocket = makeWASocket({
+      version,
+      printQRInTerminal: false,
+      auth: state,
+      logger,
+      markOnlineOnConnect: false,
+      browser: Browsers.ubuntu("Chrome"),
+    });
+    sessions.set(sessionId, { ...sock });
+    try {
+      if (!sock.authState.creds.registered) {
+        console.log("first time pairing");
+        const code = await sock.requestPairingCode(options.phoneNumber);
+        console.log(code);
+        callback.get(CALLBACK_KEY.ON_PAIRING_CODE)?.(sessionId, code);
+      }
+
       sock.ev.process(async (events) => {
         if (events["connection.update"]) {
           const update = events["connection.update"];
@@ -214,5 +315,11 @@ export const onConnecting = (listener: (sessionId: string) => any) => {
 };
 
 export const onMessageUpdate = (listener: (data: MessageUpdated) => any) => {
+  callback.set(CALLBACK_KEY.ON_MESSAGE_UPDATED, listener);
+};
+
+export const onPairingCode = (
+  listener: (sessionId: string, code: string) => any
+) => {
   callback.set(CALLBACK_KEY.ON_MESSAGE_UPDATED, listener);
 };
