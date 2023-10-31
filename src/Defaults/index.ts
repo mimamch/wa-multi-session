@@ -1,6 +1,6 @@
 export abstract class CREDENTIALS {
   static DIR_NAME: string = "wa_credentials";
-  static PREFIX: string = "_credentials";
+  static SUFFIX: string = "_credentials";
 }
 
 export enum CALLBACK_KEY {

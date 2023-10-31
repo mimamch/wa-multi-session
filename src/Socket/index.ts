@@ -42,7 +42,7 @@ export const startSession = async (
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
     const { state, saveCreds } = await useMultiFileAuthState(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.SUFFIX)
     );
     const sock: WASocket = makeWASocket({
       version,
@@ -135,7 +135,7 @@ export const startSessionWithPairingCode = async (
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
     const { state, saveCreds } = await useMultiFileAuthState(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.SUFFIX)
     );
     const sock: WASocket = makeWASocket({
       version,
@@ -238,7 +238,7 @@ export const deleteSession = async (sessionId: string) => {
   sessions.delete(sessionId);
   const dir = path.resolve(
     CREDENTIALS.DIR_NAME,
-    sessionId + CREDENTIALS.PREFIX
+    sessionId + CREDENTIALS.SUFFIX
   );
   if (fs.existsSync(dir)) {
     fs.rmSync(dir, { force: true, recursive: true });
@@ -253,10 +253,10 @@ const isSessionExistAndRunning = (sessionId: string): boolean => {
   if (
     fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
     fs.existsSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.SUFFIX)
     ) &&
     fs.readdirSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.SUFFIX)
     ).length &&
     getSession(sessionId)
   ) {
@@ -268,10 +268,10 @@ const shouldLoadSession = (sessionId: string): boolean => {
   if (
     fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
     fs.existsSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.SUFFIX)
     ) &&
     fs.readdirSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
+      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.SUFFIX)
     ).length &&
     !getSession(sessionId)
   ) {
