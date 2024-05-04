@@ -321,5 +321,5 @@ export const onMessageUpdate = (listener: (data: MessageUpdated) => any) => {
 export const onPairingCode = (
   listener: (sessionId: string, code: string) => any
 ) => {
-  callback.set(CALLBACK_KEY.ON_MESSAGE_UPDATED, listener);
+  callback.set(CALLBACK_KEY.ON_PAIRING_CODE, listener);
 };
