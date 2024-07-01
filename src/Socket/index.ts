@@ -4,7 +4,6 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
   WASocket,
-  WAMessageUpdate,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
 import path from "path";
