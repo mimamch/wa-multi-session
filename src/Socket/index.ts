@@ -30,13 +30,16 @@ const callback: Map<string, Function> = new Map();
 
 const retryCount: Map<string, number> = new Map();
 
+const P = require("pino")({
+	level: "silent",
+});
+
 export const startSession = async (
   sessionId = "mysession",
   options: StartSessionParams = { printQR: true }
 ): Promise<WASocket> => {
   if (isSessionExistAndRunning(sessionId))
     throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
-  const logger = pino({ level: "silent" });
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
@@ -47,7 +50,7 @@ export const startSession = async (
       version,
       printQRInTerminal: options.printQR,
       auth: state,
-      logger,
+      logger: P,
       markOnlineOnConnect: false,
       browser: Browsers.ubuntu("Chrome"),
     });
@@ -129,7 +132,6 @@ export const startSessionWithPairingCode = async (
 ): Promise<WASocket> => {
   if (isSessionExistAndRunning(sessionId))
     throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
-  const logger = pino({ level: "silent" });
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
@@ -140,7 +142,7 @@ export const startSessionWithPairingCode = async (
       version,
       printQRInTerminal: false,
       auth: state,
-      logger,
+      logger: P,
       markOnlineOnConnect: false,
       browser: Browsers.ubuntu("Chrome"),
     });
