@@ -5,7 +5,6 @@ import makeWASocket, {
   useMultiFileAuthState,
   WASocket,
 } from "@whiskeysockets/baileys";
-import pino from "pino";
 import path from "path";
 import { Boom } from "@hapi/boom";
 import fs from "fs";
