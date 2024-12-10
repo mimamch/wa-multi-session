@@ -16,9 +16,6 @@ export const phoneToJid = ({
 }): string => {
   if (!to) throw new WhatsappError('parameter "to" is required');
   let number = to.toString();
-  if (!isPhoneNumberValidCountry(number)) {
-    throw new WhatsappError("phone number must start with valid country code");
-  }
   if (isGroup) {
     number = number.replace(/\s|[+]|[-]/gim, "");
     if (!number.includes("@g.us")) number = number + "@g.us";

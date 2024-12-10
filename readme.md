@@ -221,28 +221,17 @@ whatsapp.setCredentialsDir("my_custom_dir");
 // or : credentials/mycreds
 ```
 
-## Change Log
+## Changelog
 
-### v3.3 September 2023 (LATEST)
+### v3.7.0 December 2024 (LATEST)
 
-What's New:
+- Upgrading @whiskeysockets/baileys to ^6.7.9
+- Fix invalid phone number
+- Remove validation is registered phone number
 
-- Send Voice Note
-- Send Sticker
-- onMessageUpdate (message ack status)
+## Also Visit Headless Whatsapp Gateway API
 
-### v3.2.1 July 2023
-
-- Add error class named: WhatsappError
-
-### v3.1.2 July 2023
-
-- Add send document message
-
-### v3.0.0 June 2023
-
-- Fix Logout Issue
-- Switching into [@whiskeysockets/baileys](https://github.com/WhiskeySockets/Baileys)
+- [wa-gateway](https://www.github.com/mimamch/wa-gateway)
 
 ## Authors
 

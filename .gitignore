@@ -3,4 +3,3 @@ node_modules/
 dist/
 wa_credentials/
 test/
-package-lock.json
