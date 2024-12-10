@@ -30,7 +30,7 @@ const callback: Map<string, Function> = new Map();
 const retryCount: Map<string, number> = new Map();
 
 const P = require("pino")({
-	level: "silent",
+  level: "silent",
 });
 
 export const startSession = async (
@@ -64,9 +64,11 @@ export const startSession = async (
               sessionId,
               qr: update.qr,
             });
+            options.onQRUpdated?.(update.qr);
           }
           if (connection == "connecting") {
             callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
+            options.onConnecting?.();
           }
           if (connection === "close") {
             const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
@@ -77,19 +79,19 @@ export const startSession = async (
             }
             if (shouldRetry) {
               retryAttempt++;
-            }
-            if (shouldRetry) {
               retryCount.set(sessionId, retryAttempt);
               startSocket();
             } else {
               retryCount.delete(sessionId);
               deleteSession(sessionId);
               callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
+              options.onDisconnected?.();
             }
           }
           if (connection == "open") {
             retryCount.delete(sessionId);
             callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
+            options.onConnected?.();
           }
         }
         if (events["creds.update"]) {
@@ -103,6 +105,7 @@ export const startSession = async (
             ...msg,
           };
           callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
+          options.onMessageUpdated?.(data);
         }
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
@@ -114,6 +117,7 @@ export const startSession = async (
           callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({
             ...msg,
           });
+          options.onMessageReceived?.(msg);
         }
       });
       return sock;
@@ -125,6 +129,10 @@ export const startSession = async (
   return startSocket();
 };
 
+/**
+ *
+ * @deprecated Use startSession method instead
+ */
 export const startSessionWithPairingCode = async (
   sessionId: string,
   options: StartSessionWithPairingCodeParams

@@ -46,7 +46,17 @@ export interface StartSessionParams {
   /**
    * Print QR Code into Terminal
    */
-  printQR: boolean;
+  printQR?: boolean;
+
+  // session events
+  onQRUpdated?: (qr: string) => void;
+  onConnected?: () => void;
+  onConnecting?: () => void;
+  onDisconnected?: () => void;
+
+  // message events
+  onMessageReceived?: (message: MessageReceived) => void;
+  onMessageUpdated?: (message: MessageUpdated) => void;
 }
 
 export interface StartSessionWithPairingCodeParams {
