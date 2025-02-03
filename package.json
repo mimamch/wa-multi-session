@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:mimamch/wa-multi-session.git"
+    "url": "git@github.com:sarp/wa-multi-session.git"
   },
   "devDependencies": {
     "@types/mime": "^3.0.1",
