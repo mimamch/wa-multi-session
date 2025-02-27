@@ -44,16 +44,8 @@ export const sendImage = async ({
 }: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
-  const oldPhone = to;
   to = phoneToJid({ to, isGroup });
-  const isRegistered = await isExist({
-    sessionId,
-    to,
-    isGroup,
-  });
-  if (!isRegistered) {
-    throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
-  }
+
   if (!media)
     throw new WhatsappError("parameter media must be Buffer or String URL");
   return await session.sendMessage(
@@ -82,16 +74,8 @@ export const sendVideo = async ({
 }: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
-  const oldPhone = to;
   to = phoneToJid({ to, isGroup });
-  const isRegistered = await isExist({
-    sessionId,
-    to,
-    isGroup,
-  });
-  if (!isRegistered) {
-    throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
-  }
+
   if (!media)
     throw new WhatsappError("parameter media must be Buffer or String URL");
   return await session.sendMessage(
@@ -123,16 +107,8 @@ export const sendDocument = async ({
 }): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
-  const oldPhone = to;
   to = phoneToJid({ to, isGroup });
-  const isRegistered = await isExist({
-    sessionId,
-    to,
-    isGroup,
-  });
-  if (!isRegistered) {
-    throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
-  }
+
   if (!media) {
     throw new WhatsappError(`Invalid Media`);
   }
@@ -170,16 +146,8 @@ export const sendVoiceNote = async ({
 }: Omit<SendMediaTypes, "text">): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
-  const oldPhone = to;
   to = phoneToJid({ to, isGroup });
-  const isRegistered = await isExist({
-    sessionId,
-    to,
-    isGroup,
-  });
-  if (!isRegistered) {
-    throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
-  }
+
   if (!media) {
     throw new WhatsappError(`Invalid Media`);
   }
@@ -210,16 +178,8 @@ export const sendSticker = async ({
 }: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
-  const oldPhone = to;
   to = phoneToJid({ to, isGroup });
-  const isRegistered = await isExist({
-    sessionId,
-    to,
-    isGroup,
-  });
-  if (!isRegistered) {
-    throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
-  }
+
   if (!media) {
     throw new WhatsappError(`Invalid Media`);
   }
@@ -260,14 +220,7 @@ export const sendTyping = async ({
   to = phoneToJid({ to, isGroup });
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
-  const isRegistered = await isExist({
-    sessionId,
-    to,
-    isGroup,
-  });
-  if (!isRegistered) {
-    throw new WhatsappError(`${oldPhone} is not registered on Whatsapp`);
-  }
+
   await session.sendPresenceUpdate("composing", to);
   await createDelay(duration);
   await session.sendPresenceUpdate("available", to);
