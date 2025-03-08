@@ -3,6 +3,9 @@ import { WhatsappError } from "../Error";
 import { getSession } from "../Socket";
 import { GetProfileInfoProps } from "../Types/profile";
 
+/**
+ * Get profile information of a target (people or group)
+ */
 export const getProfileInfo = async (props: GetProfileInfoProps) => {
   const session = getSession(props.sessionId);
   if (!session)
