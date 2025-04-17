@@ -37,3 +37,12 @@ export const saveDocumentHandler = async (
   path += "." + ext;
   return saveMedia(path, buf as Buffer);
 };
+
+export const saveAudioHandler = async (msg: MessageReceived, path: string) => {
+  if (!msg.message?.audioMessage)
+    throw new ValidationError("Message is not contain Audio");
+
+  const buf = await downloadMediaMessage(msg, "buffer", {});
+
+  return saveMedia(path, buf as Buffer);
+};
