@@ -17,7 +17,7 @@
   "dependencies": {
     "@adiwajshing/keyed-db": "^0.2.4",
     "@hapi/boom": "^10.0.1",
-    "@whiskeysockets/baileys": "^6.7.9",
+    "baileys": "^6.7.16",
     "link-preview-js": "^3.0.14",
     "mime": "^3.0.0",
     "pino": "^9.5.0",
@@ -29,6 +29,8 @@
   },
   "devDependencies": {
     "@types/mime": "^3.0.1",
+    "@types/node": "^22.14.1",
     "typescript": "^5.7.2"
-  }
+  },
+  "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf"
 }

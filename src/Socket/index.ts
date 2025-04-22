@@ -4,7 +4,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
   WASocket,
-} from "@whiskeysockets/baileys";
+} from "baileys";
 import path from "path";
 import { Boom } from "@hapi/boom";
 import fs from "fs";
@@ -244,7 +244,7 @@ export const deleteSession = async (sessionId: string) => {
   const session = getSession(sessionId);
   try {
     await session?.logout();
-  } catch (error) {}
+  } catch (error) { }
   session?.end(undefined);
   sessions.delete(sessionId);
   const dir = path.resolve(
