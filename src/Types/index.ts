@@ -1,4 +1,4 @@
-import { WAMessageUpdate, proto } from "@whiskeysockets/baileys";
+import { WAMessageUpdate, proto } from "baileys";
 
 export interface SendMessageTypes {
   to: string | number;
@@ -74,10 +74,10 @@ export interface StartSessionWithPairingCodeParams {
 export type MessageUpdated = WAMessageUpdate & {
   sessionId: string;
   messageStatus:
-    | "error"
-    | "pending"
-    | "server"
-    | "delivered"
-    | "read"
-    | "played";
+  | "error"
+  | "pending"
+  | "server"
+  | "delivered"
+  | "read"
+  | "played";
 };

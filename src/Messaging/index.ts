@@ -1,4 +1,4 @@
-import { proto } from "@whiskeysockets/baileys";
+import { proto } from "baileys";
 import { Messages } from "../Defaults";
 import { getSession } from "../Socket";
 import {
@@ -54,8 +54,8 @@ export const sendImage = async ({
       image:
         typeof media == "string"
           ? {
-              url: media,
-            }
+            url: media,
+          }
           : media,
       caption: text,
     },
@@ -84,8 +84,8 @@ export const sendVideo = async ({
       video:
         typeof media == "string"
           ? {
-              url: media,
-            }
+            url: media,
+          }
           : media,
       caption: text,
     },
@@ -125,8 +125,8 @@ export const sendDocument = async ({
       document:
         typeof media == "string"
           ? {
-              url: media,
-            }
+            url: media,
+          }
           : media,
       mimetype: mimetype,
       caption: text,
@@ -158,8 +158,8 @@ export const sendVoiceNote = async ({
       audio:
         typeof media == "string"
           ? {
-              url: media,
-            }
+            url: media,
+          }
           : media,
       ptt: true,
     },
@@ -190,8 +190,8 @@ export const sendSticker = async ({
       sticker:
         typeof media == "string"
           ? {
-              url: media,
-            }
+            url: media,
+          }
           : media,
     },
     {
