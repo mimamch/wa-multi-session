@@ -1,28 +1,29 @@
-import makeWASocket, {
-  Browsers,
-  DisconnectReason,
-  fetchLatestBaileysVersion,
-  useMultiFileAuthState,
-  WASocket,
-} from "@whiskeysockets/baileys";
-import path from "path";
-import { Boom } from "@hapi/boom";
-import fs from "fs";
+import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
 import type {
   MessageReceived,
   MessageUpdated,
   StartSessionParams,
   StartSessionWithPairingCodeParams,
 } from "../Types";
-import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
+import makeWASocket, {
+  Browsers,
+  DisconnectReason,
+  WASocket,
+  fetchLatestBaileysVersion,
+  useMultiFileAuthState,
+} from "@whiskeysockets/baileys";
 import {
   saveAudioHandler,
   saveDocumentHandler,
   saveImageHandler,
   saveVideoHandler,
 } from "../Utils/save-media";
+
+import { Boom } from "@hapi/boom";
 import { WhatsappError } from "../Error";
+import fs from "fs";
 import { parseMessageStatusCodeToReadable } from "../Utils/message-status";
+import path from "path";
 
 const sessions: Map<string, WASocket> = new Map();
 
@@ -105,7 +106,7 @@ export const startSession = async (
             messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
             ...msg,
           };
-          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(data);
           options.onMessageUpdated?.(data);
         }
         if (events["messages.upsert"]) {
@@ -211,7 +212,7 @@ export const startSessionWithPairingCode = async (
             messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
             ...msg,
           };
-          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(data);
         }
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
