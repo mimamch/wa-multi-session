@@ -15,13 +15,26 @@ export const phoneToJid = ({
   isGroup?: boolean;
 }): string => {
   if (!to) throw new WhatsappError('parameter "to" is required');
-  let number = to.toString();
+  let number = to.toString().replace(/\s|\+/g, "");
+
+  // Jika sudah group JID (ada @g.us), biarkan tanda minus
+  if (number.endsWith("@g.us")) {
+    return number;
+  }
+
+  // Pattern group JID: angka-angka-tanda minus-angka-angka (misal: 6282170389181-1610338502)
+  const isGroupJidFormat = isGroup && /^\d+-\d+$/.test(number);
+
+  // Kalau bukan group JID, hapus tanda minus
+  if (!isGroupJidFormat) {
+    number = number.replace(/-/g, "");
+  }
+
+  // Tambahkan suffix JID
   if (isGroup) {
-    number = number.replace(/\s|[+]|[-]/gim, "");
-    if (!number.includes("@g.us")) number = number + "@g.us";
+    if (!number.endsWith("@g.us")) number = number + "@g.us";
   } else {
-    number = number.replace(/\s|[+]|[-]/gim, "");
-    if (!number.includes("@s.whatsapp.net"))
+    if (!number.endsWith("@s.whatsapp.net"))
       number = number + "@s.whatsapp.net";
   }
 
