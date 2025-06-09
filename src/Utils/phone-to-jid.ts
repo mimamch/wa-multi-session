@@ -17,10 +17,10 @@ export const phoneToJid = ({
   if (!to) throw new WhatsappError('parameter "to" is required');
   let number = to.toString();
   if (isGroup) {
-    number = number.replace(/\s|[+]|[-]/gim, "");
+    number = number.replace(/\s|\+/gim, "");
     if (!number.includes("@g.us")) number = number + "@g.us";
   } else {
-    number = number.replace(/\s|[+]|[-]/gim, "");
+    number = number.replace(/\s|\+/gim, "");
     if (!number.includes("@s.whatsapp.net"))
       number = number + "@s.whatsapp.net";
   }
