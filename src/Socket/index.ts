@@ -16,6 +16,7 @@ import type {
 } from "../Types";
 import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
 import {
+  saveAudioHandler,
   saveDocumentHandler,
   saveImageHandler,
   saveVideoHandler,
@@ -114,6 +115,7 @@ export const startSession = async (
           msg.saveImage = (path) => saveImageHandler(msg, path);
           msg.saveVideo = (path) => saveVideoHandler(msg, path);
           msg.saveDocument = (path) => saveDocumentHandler(msg, path);
+          msg.saveAudio = (path) => saveAudioHandler(msg, path);
           callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({
             ...msg,
           });
@@ -218,6 +220,7 @@ export const startSessionWithPairingCode = async (
           msg.saveImage = (path) => saveImageHandler(msg, path);
           msg.saveVideo = (path) => saveVideoHandler(msg, path);
           msg.saveDocument = (path) => saveDocumentHandler(msg, path);
+          msg.saveAudio = (path) => saveAudioHandler(msg, path);
           callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({
             ...msg,
           });

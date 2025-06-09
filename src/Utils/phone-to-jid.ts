@@ -35,6 +35,11 @@ export const phoneToJid = ({
     if (!number.endsWith("@g.us")) number = number + "@g.us";
   } else {
     if (!number.endsWith("@s.whatsapp.net"))
+    number = number.replace(/\s|\+/gim, "");
+    if (!number.includes("@g.us")) number = number + "@g.us";
+  } else {
+    number = number.replace(/\s|\+/gim, "");
+    if (!number.includes("@s.whatsapp.net"))
       number = number + "@s.whatsapp.net";
   }
 
