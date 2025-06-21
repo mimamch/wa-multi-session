@@ -62,6 +62,7 @@ export interface StartSessionParams {
   // message events
   onMessageReceived?: (message: MessageReceived) => void;
   onMessageUpdated?: (message: MessageUpdated) => void;
+  onContactUpdate?: (contacts: Object) => void;
 }
 
 export interface StartSessionWithPairingCodeParams {

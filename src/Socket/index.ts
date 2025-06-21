@@ -38,8 +38,7 @@ export const startSession = async (
   sessionId = "mysession",
   options: StartSessionParams = { printQR: true }
 ): Promise<WASocket> => {
-  if (isSessionExistAndRunning(sessionId))
-    throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
+  if (isSessionExistAndRunning(sessionId)) throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
@@ -57,6 +56,18 @@ export const startSession = async (
     sessions.set(sessionId, { ...sock });
     try {
       sock.ev.process(async (events) => {
+        // console.log("events:", events);
+        /*
+        Get Contact form list
+        this only call when user first time login
+        */
+        if (events["contacts.upsert"]) {
+          const contacts = events["contacts.upsert"];
+          callback.get(CALLBACK_KEY.CONTACT_UPDATE)?.({
+            sessionId, contacts
+          });
+          options.onContactUpdate?.(contacts);
+        }
         if (events["connection.update"]) {
           const update = events["connection.update"];
           const { connection, lastDisconnect } = update;
@@ -260,6 +271,9 @@ export const getAllSession = (): string[] => Array.from(sessions.keys());
 export const getSession = (key: string): WASocket | undefined =>
   sessions.get(key) as WASocket;
 
+export const isRunning = (key:string) => {
+  
+}
 const isSessionExistAndRunning = (sessionId: string): boolean => {
   if (
     fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
@@ -328,6 +342,12 @@ export const onConnecting = (listener: (sessionId: string) => any) => {
 export const onMessageUpdate = (listener: (data: MessageUpdated) => any) => {
   callback.set(CALLBACK_KEY.ON_MESSAGE_UPDATED, listener);
 };
+
+export const onContactUpdate = (
+  listener: ({ sessionId, contacts }: { sessionId: string; contacts: string }) => any
+) => {
+  callback.set(CALLBACK_KEY.CONTACT_UPDATE,listener);
+}
 
 export const onPairingCode = (
   listener: (sessionId: string, code: string) => any
