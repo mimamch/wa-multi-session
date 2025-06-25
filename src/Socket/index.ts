@@ -300,7 +300,7 @@ export const loadSessionsFromStorage = () => {
       throw err;
     }
     for (const dir of dirs) {
-      const sessionId = dir.split("_")[0];
+      const sessionId = dir.slice(0, dir.lastIndexOf('_'));
       if (!shouldLoadSession(sessionId)) continue;
       startSession(sessionId);
     }
