@@ -7,6 +7,7 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import path from "path";
 import { Boom } from "@hapi/boom";
+import qrTerminal from "qrcode-terminal";
 import fs from "fs";
 import type {
   MessageReceived,
@@ -48,7 +49,6 @@ export const startSession = async (
     );
     const sock: WASocket = makeWASocket({
       version,
-      printQRInTerminal: options.printQR,
       auth: state,
       logger: P,
       markOnlineOnConnect: false,
@@ -66,6 +66,12 @@ export const startSession = async (
               qr: update.qr,
             });
             options.onQRUpdated?.(update.qr);
+            if (options.printQR) {
+              qrTerminal.generate(update.qr, { small: true }, (qrcode) => {
+                console.log(sessionId + ":");
+                console.log(qrcode);
+              });
+            }
           }
           if (connection == "connecting") {
             callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
