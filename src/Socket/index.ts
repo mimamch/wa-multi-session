@@ -111,7 +111,7 @@ export const startSession = async (
             messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
             ...msg,
           };
-          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(data);
           options.onMessageUpdated?.(data);
         }
         if (events["messages.upsert"]) {
@@ -217,7 +217,7 @@ export const startSessionWithPairingCode = async (
             messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
             ...msg,
           };
-          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.( data);
         }
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
@@ -338,5 +338,5 @@ export const onMessageUpdate = (listener: (data: MessageUpdated) => any) => {
 export const onPairingCode = (
   listener: (sessionId: string, code: string) => any
 ) => {
-  callback.set(CALLBACK_KEY.ON_MESSAGE_UPDATED, listener);
+  callback.set(CALLBACK_KEY.ON_PAIRING_CODE, listener);
 };
