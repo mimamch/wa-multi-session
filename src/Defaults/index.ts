@@ -1,5 +1,6 @@
 export abstract class CREDENTIALS {
   static DIR_NAME: string = "wa_credentials";
+  static DATABASE_NAME: string = "database.db";
   static PREFIX: string = "_credentials";
 }
 

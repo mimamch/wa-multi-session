@@ -24,6 +24,7 @@ import {
 } from "../Utils/save-media";
 import { WhatsappError } from "../Error";
 import { parseMessageStatusCodeToReadable } from "../Utils/message-status";
+import { getSQLiteSessionIds, useSQLiteAuthState } from "../Store/Sqlite";
 
 const sessions: Map<string, WASocket> = new Map();
 
@@ -44,9 +45,7 @@ export const startSession = async (
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
-    const { state, saveCreds } = await useMultiFileAuthState(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    );
+    const { state, saveCreds } = await useSQLiteAuthState(sessionId);
     const sock: WASocket = makeWASocket({
       version,
       auth: state,
@@ -267,50 +266,28 @@ export const getSession = (key: string): WASocket | undefined =>
   sessions.get(key) as WASocket;
 
 const isSessionExistAndRunning = (sessionId: string): boolean => {
-  if (
-    fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
-    fs.existsSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ) &&
-    fs.readdirSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ).length &&
-    getSession(sessionId)
-  ) {
-    return true;
-  }
-  return false;
-};
-const shouldLoadSession = (sessionId: string): boolean => {
-  if (
-    fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
-    fs.existsSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ) &&
-    fs.readdirSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ).length &&
-    !getSession(sessionId)
-  ) {
+  if (getSession(sessionId)) {
     return true;
   }
   return false;
 };
 
-export const loadSessionsFromStorage = () => {
-  if (!fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME))) {
-    fs.mkdirSync(path.resolve(CREDENTIALS.DIR_NAME));
+type GetStartSessionOptionsProps = (
+  sessionid: string
+) => StartSessionParams | undefined | void;
+/**
+ * @returns loaded session ids
+ */
+export const loadSessionsFromStorage = async (
+  getOptions?: GetStartSessionOptionsProps
+) => {
+  const sessionIds = await getSQLiteSessionIds();
+  for (const sessionId of sessionIds) {
+    const options = getOptions?.(sessionId);
+    await startSession(sessionId, options || undefined);
   }
-  fs.readdir(path.resolve(CREDENTIALS.DIR_NAME), async (err, dirs) => {
-    if (err) {
-      throw err;
-    }
-    for (const dir of dirs) {
-      const sessionId = dir.split("_")[0];
-      if (!shouldLoadSession(sessionId)) continue;
-      startSession(sessionId);
-    }
-  });
+
+  return sessionIds;
 };
 
 export const onMessageReceived = (listener: (msg: MessageReceived) => any) => {
