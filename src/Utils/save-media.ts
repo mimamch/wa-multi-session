@@ -1,4 +1,4 @@
-import { downloadMediaMessage } from "@whiskeysockets/baileys";
+import { downloadMediaMessage } from "baileys";
 import { MessageReceived } from "../Types";
 import ValidationError from "./error";
 import fs from "fs/promises";

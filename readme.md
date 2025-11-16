@@ -221,14 +221,6 @@ whatsapp.setCredentialsDir("my_custom_dir");
 // or : credentials/mycreds
 ```
 
-## Changelog
-
-### v3.7.0 December 2024 (LATEST)
-
-- Upgrading @whiskeysockets/baileys to ^6.7.9
-- Fix invalid phone number
-- Remove validation is registered phone number
-
 ## Also Visit Headless Whatsapp Gateway API
 
 - [wa-gateway](https://www.github.com/mimamch/wa-gateway)

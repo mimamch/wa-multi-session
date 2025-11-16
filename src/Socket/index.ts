@@ -4,7 +4,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
   WASocket,
-} from "@whiskeysockets/baileys";
+} from "baileys";
 import path from "path";
 import { Boom } from "@hapi/boom";
 import qrTerminal from "qrcode-terminal";
@@ -217,7 +217,7 @@ export const startSessionWithPairingCode = async (
             messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
             ...msg,
           };
-          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.( data);
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(data);
         }
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
