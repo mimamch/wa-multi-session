@@ -21,6 +21,17 @@ const getDb = async () => {
       }`,
       driver: sqlite3.Database,
     });
+
+    // Create table if not exists
+    await db.exec(`
+    CREATE TABLE IF NOT EXISTS auth_store (
+      id TEXT,
+      session_id TEXT,
+      category TEXT,
+      value TEXT,
+      PRIMARY KEY (id, session_id)
+    )
+  `);
   }
 
   return db;
@@ -30,17 +41,6 @@ export const useSQLiteAuthState = async (
   sessionId: string
 ): Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }> => {
   const database = await getDb();
-
-  // Create table with session_id
-  await database.exec(`
-    CREATE TABLE IF NOT EXISTS auth_store (
-      id TEXT,
-      session_id TEXT,
-      category TEXT,
-      value TEXT,
-      PRIMARY KEY (id, session_id)
-    )
-  `);
 
   const writeData = async (id: string, category: string, data: any) => {
     await database.run(
