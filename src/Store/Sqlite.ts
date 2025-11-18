@@ -10,11 +10,15 @@ import {
   SignalDataTypeMap,
 } from "baileys";
 import { CREDENTIALS } from "../Defaults";
+import fs from "fs/promises";
 
 let db: Database<sqlite3.Database, sqlite3.Statement> | null = null;
 
 const getDb = async () => {
   if (!db) {
+    // make directory if not exists
+    await fs.mkdir(path.resolve(CREDENTIALS.DIR_NAME), { recursive: true });
+
     db = await open({
       filename: `${path.resolve(CREDENTIALS.DIR_NAME)}/${
         CREDENTIALS.DATABASE_NAME
