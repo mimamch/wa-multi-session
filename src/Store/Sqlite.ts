@@ -26,6 +26,10 @@ const getDb = async () => {
       driver: sqlite3.Database,
     });
 
+    await db.exec("PRAGMA journal_mode = WAL;");
+    await db.exec("PRAGMA busy_timeout = 5000;");
+    db.configure("busyTimeout", 5000);
+
     // Create table if not exists
     await db.exec(`
     CREATE TABLE IF NOT EXISTS auth_store (
@@ -43,7 +47,11 @@ const getDb = async () => {
 
 export const useSQLiteAuthState = async (
   sessionId: string
-): Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }> => {
+): Promise<{
+  state: AuthenticationState;
+  saveCreds: () => Promise<void>;
+  deleteCreds: () => Promise<void>;
+}> => {
   const database = await getDb();
 
   const writeData = async (id: string, category: string, data: any) => {
@@ -72,6 +80,12 @@ export const useSQLiteAuthState = async (
     await database.run(
       `DELETE FROM auth_store WHERE id = ? AND session_id = ?`,
       id,
+      sessionId
+    );
+  };
+  const clearData = async () => {
+    await database.run(
+      `DELETE FROM auth_store WHERE session_id = ?`,
       sessionId
     );
   };
@@ -110,6 +124,9 @@ export const useSQLiteAuthState = async (
     },
     saveCreds: async () => {
       await writeData("creds", "credentials", creds);
+    },
+    deleteCreds: async () => {
+      await clearData();
     },
   };
 };
