@@ -247,8 +247,10 @@ export const startWhatsapp = startSession;
 
 export const deleteSession = async (sessionId: string) => {
   const session = getSession(sessionId);
+  const authState = await useSQLiteAuthState(sessionId);
   try {
     await session?.logout();
+    await authState.deleteCreds();
   } catch (error) {}
   session?.end(undefined);
   sessions.delete(sessionId);
