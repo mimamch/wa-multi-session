@@ -539,4 +539,27 @@ export class Whatsapp {
       status: status.status === "fulfilled" ? status.value || null : null,
     };
   }
+
+  /**
+   * Check is user or group exist
+   */
+  async isExist(props: SendMessageTypes): Promise<boolean> {
+    try {
+      const session = await this.getSessionByIdReadyOrThrow(props.sessionId);
+      const receiver = phoneToJid({
+        to: props.to,
+        isGroup: props.isGroup,
+      });
+      if (!props.isGroup) {
+        const one = Boolean(
+          (await session?.sock.onWhatsApp(receiver))?.[0]?.exists
+        );
+        return one;
+      } else {
+        return Boolean((await session.sock.groupMetadata(receiver)).id);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
 }
