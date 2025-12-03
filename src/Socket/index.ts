@@ -27,7 +27,7 @@ import { Store } from "../Store/Store";
 const sessions: Map<
   string,
   {
-    session: WASocket;
+    sock: WASocket;
     store: Store;
   }
 > = new Map();
@@ -57,7 +57,7 @@ export const startSession = async (
       markOnlineOnConnect: false,
       browser: Browsers.ubuntu("Chrome"),
     });
-    sessions.set(sessionId, { session: sock, store });
+    sessions.set(sessionId, { sock: sock, store });
     try {
       sock.ev.process(async (events) => {
         if (events["connection.update"]) {
@@ -162,7 +162,7 @@ export const startSessionWithPairingCode = async (
       markOnlineOnConnect: false,
       browser: Browsers.ubuntu("Chrome"),
     });
-    sessions.set(sessionId, { session: sock, store: store });
+    sessions.set(sessionId, { sock: sock, store: store });
     try {
       if (!sock.authState.creds.registered) {
         console.log("first time pairing");
@@ -250,10 +250,10 @@ export const startWhatsapp = startSession;
 export const deleteSession = async (sessionId: string) => {
   const session = getSession(sessionId);
   try {
-    await session?.session.logout();
+    await session?.sock.logout();
     await session?.store.deleteCreds();
   } catch (error) {}
-  session?.session.end(undefined);
+  session?.sock.end(undefined);
   sessions.delete(sessionId);
 };
 export const getAllSession = (): string[] => Array.from(sessions.keys());

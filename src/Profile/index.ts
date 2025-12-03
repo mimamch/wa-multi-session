@@ -12,8 +12,8 @@ export const getProfileInfo = async (props: GetProfileInfoProps) => {
     throw new WhatsappError(Messages.sessionNotFound(props.sessionId));
 
   const [profilePictureUrl, status] = await Promise.allSettled([
-    session.profilePictureUrl(props.target, "image", 5000),
-    session.fetchStatus(props.target),
+    session.sock.profilePictureUrl(props.target, "image", 5000),
+    session.sock.fetchStatus(props.target),
   ]);
   return {
     profilePictureUrl:
