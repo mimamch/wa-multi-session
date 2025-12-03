@@ -1,4 +1,5 @@
 import { WAMessage, WAMessageUpdate, proto } from "baileys";
+import { Store } from "../Store/Store";
 
 export interface SendMessageTypes {
   to: string | number;
@@ -70,6 +71,9 @@ export interface StartSessionParams {
   // message events
   onMessageReceived?: (message: MessageReceived) => void;
   onMessageUpdated?: (message: MessageUpdated) => void;
+
+  // store
+  store?: Store;
 }
 
 export interface StartSessionWithPairingCodeParams {
@@ -77,6 +81,9 @@ export interface StartSessionWithPairingCodeParams {
    * Phone Number with Country Code
    */
   phoneNumber: string;
+
+  // store
+  store?: Store;
 }
 
 export type MessageUpdated = WAMessageUpdate & {

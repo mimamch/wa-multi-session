@@ -2,20 +2,17 @@ import makeWASocket, {
   Browsers,
   DisconnectReason,
   fetchLatestBaileysVersion,
-  useMultiFileAuthState,
   WASocket,
 } from "baileys";
-import path from "path";
 import { Boom } from "@hapi/boom";
 import qrTerminal from "qrcode-terminal";
-import fs from "fs";
 import type {
   MessageReceived,
   MessageUpdated,
   StartSessionParams,
   StartSessionWithPairingCodeParams,
 } from "../Types";
-import { CALLBACK_KEY, CREDENTIALS, Messages } from "../Defaults";
+import { CALLBACK_KEY, Messages } from "../Defaults";
 import {
   saveAudioHandler,
   saveDocumentHandler,
@@ -24,9 +21,16 @@ import {
 } from "../Utils/save-media";
 import { WhatsappError } from "../Error";
 import { parseMessageStatusCodeToReadable } from "../Utils/message-status";
-import { getSQLiteSessionIds, useSQLiteAuthState } from "../Store/Sqlite";
+import { getSQLiteSessionIds, SQLiteStore } from "../Store/Sqlite";
+import { Store } from "../Store/Store";
 
-const sessions: Map<string, WASocket> = new Map();
+const sessions: Map<
+  string,
+  {
+    session: WASocket;
+    store: Store;
+  }
+> = new Map();
 
 const callback: Map<string, Function> = new Map();
 
@@ -45,15 +49,15 @@ export const startSession = async (
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
-    const { state, saveCreds } = await useSQLiteAuthState(sessionId);
+    const store = options.store || new SQLiteStore(sessionId);
     const sock: WASocket = makeWASocket({
       version,
-      auth: state,
+      auth: store.state,
       logger: P,
       markOnlineOnConnect: false,
       browser: Browsers.ubuntu("Chrome"),
     });
-    sessions.set(sessionId, { ...sock });
+    sessions.set(sessionId, { session: sock, store });
     try {
       sock.ev.process(async (events) => {
         if (events["connection.update"]) {
@@ -101,7 +105,7 @@ export const startSession = async (
           }
         }
         if (events["creds.update"]) {
-          await saveCreds();
+          await store.saveCreds();
         }
         if (events["messages.update"]) {
           const msg = events["messages.update"][0];
@@ -149,18 +153,16 @@ export const startSessionWithPairingCode = async (
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
-    const { state, saveCreds } = await useMultiFileAuthState(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    );
+    const store = options.store || new SQLiteStore(sessionId);
     const sock: WASocket = makeWASocket({
       version,
       printQRInTerminal: false,
-      auth: state,
+      auth: store.state,
       logger: P,
       markOnlineOnConnect: false,
       browser: Browsers.ubuntu("Chrome"),
     });
-    sessions.set(sessionId, { ...sock });
+    sessions.set(sessionId, { session: sock, store: store });
     try {
       if (!sock.authState.creds.registered) {
         console.log("first time pairing");
@@ -207,7 +209,7 @@ export const startSessionWithPairingCode = async (
           }
         }
         if (events["creds.update"]) {
-          await saveCreds();
+          await store.saveCreds();
         }
         if (events["messages.update"]) {
           const msg = events["messages.update"][0];
@@ -247,25 +249,19 @@ export const startWhatsapp = startSession;
 
 export const deleteSession = async (sessionId: string) => {
   const session = getSession(sessionId);
-  const authState = await useSQLiteAuthState(sessionId);
   try {
-    await session?.logout();
-    await authState.deleteCreds();
+    await session?.session.logout();
+    await session?.store.deleteCreds();
   } catch (error) {}
-  session?.end(undefined);
+  session?.session.end(undefined);
   sessions.delete(sessionId);
-  const dir = path.resolve(
-    CREDENTIALS.DIR_NAME,
-    sessionId + CREDENTIALS.PREFIX
-  );
-  if (fs.existsSync(dir)) {
-    fs.rmSync(dir, { force: true, recursive: true });
-  }
 };
 export const getAllSession = (): string[] => Array.from(sessions.keys());
 
-export const getSession = (key: string): WASocket | undefined =>
-  sessions.get(key) as WASocket;
+export const getSession = (
+  key: string
+): typeof sessions extends Map<string, infer U> ? U : never =>
+  sessions.get(key);
 
 const isSessionExistAndRunning = (sessionId: string): boolean => {
   if (getSession(sessionId)) {
@@ -283,6 +279,9 @@ type GetStartSessionOptionsProps = (
 export const loadSessionsFromStorage = async (
   getOptions?: GetStartSessionOptionsProps
 ) => {
+  /**
+   * TODO: improve this method to load sessions from other storage options
+   */
   const sessionIds = await getSQLiteSessionIds();
   for (const sessionId of sessionIds) {
     const options = getOptions?.(sessionId);
