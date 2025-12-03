@@ -16,10 +16,13 @@ export enum CALLBACK_KEY {
 
 export abstract class Messages {
   static sessionAlreadyExist = (sessionId: string): string =>
-    `Session ID :${sessionId} is already exist, Try another Session ID.`;
+    `Session ID: "${sessionId}" is already exist, Try another Session ID.`;
 
   static sessionNotFound = (sessionId: string): string =>
-    `Session with ID: ${sessionId} Not Exist!`;
+    `Session with ID: "${sessionId}" Not Exist!`;
+
+  static sessionNotReady = (sessionId: string): string =>
+    `Session with ID: "${sessionId}" Not Ready!`;
 
   static paremetersRequired = (props: string[] | string) =>
     `Parameter ${
@@ -29,4 +32,7 @@ export abstract class Messages {
         ? props.join(", ")
         : ""
     } is required`;
+
+  static adapterNotProvided = (): string =>
+    `Adapter instance is required in Whatsapp constructor`;
 }

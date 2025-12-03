@@ -11,7 +11,7 @@ import {
 } from "baileys";
 import { CREDENTIALS } from "../Defaults";
 import fs from "fs/promises";
-import { Store } from "./Store";
+import { LegacyStore } from "./Store";
 
 let db: Database<sqlite3.Database, sqlite3.Statement> | null = null;
 
@@ -144,7 +144,7 @@ export const getSQLiteSessionIds = async () => {
   ).map((row) => row.session_id);
 };
 
-export class SQLiteStore implements Store {
+export class SQLiteStore implements LegacyStore {
   sessionId: string;
   state: AuthenticationState;
 

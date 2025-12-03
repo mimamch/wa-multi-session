@@ -22,13 +22,13 @@ import {
 import { WhatsappError } from "../Error";
 import { parseMessageStatusCodeToReadable } from "../Utils/message-status";
 import { getSQLiteSessionIds, SQLiteStore } from "../Store/Sqlite";
-import { Store } from "../Store/Store";
+import { LegacyStore } from "../Store/Store";
 
 const sessions: Map<
   string,
   {
     sock: WASocket;
-    store: Store;
+    store: LegacyStore;
   }
 > = new Map();
 

@@ -1,5 +1,5 @@
 import { WAMessage, WAMessageUpdate, proto } from "baileys";
-import { Store } from "../Store/Store";
+import { LegacyStore } from "../Store/Store";
 
 export interface SendMessageTypes {
   to: string | number;
@@ -73,7 +73,7 @@ export interface StartSessionParams {
   onMessageUpdated?: (message: MessageUpdated) => void;
 
   // store
-  store?: Store;
+  store?: LegacyStore;
 }
 
 export interface StartSessionWithPairingCodeParams {
@@ -83,7 +83,7 @@ export interface StartSessionWithPairingCodeParams {
   phoneNumber: string;
 
   // store
-  store?: Store;
+  store?: LegacyStore;
 }
 
 export type MessageUpdated = WAMessageUpdate & {
