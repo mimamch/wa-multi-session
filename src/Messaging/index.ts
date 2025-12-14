@@ -263,7 +263,7 @@ export const sendPoll = async ({
     },
   };
 
-  return await session.sendMessage(to, pollMsg, {
+  return await session.sock.sendMessage(to, pollMsg, {
     quoted: props.answering,
   });
 };
