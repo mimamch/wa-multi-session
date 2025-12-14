@@ -141,6 +141,20 @@ await whatsapp.sendTyping({
 });
 ```
 
+Send Poll
+
+```ts
+await whatsapp.sendPoll({
+  sessionId: "session1",
+  to: "6281234567890",
+  poll: {
+    name: "My Poll",
+    values: ["Cahyo", "Nabil", "Haikal", "Nopal"],
+    selectableCount: 1, // number of values can be selected
+  },
+});
+```
+
 ## Listener Usage/Examples
 
 Add Listener/Callback When Receive a Message

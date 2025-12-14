@@ -4,6 +4,7 @@ import { getSession } from "../Socket";
 import {
   SendMediaTypes,
   SendMessageTypes,
+  SendPollTypes,
   SendReadTypes,
   SendTypingTypes,
 } from "../Types";
@@ -241,4 +242,28 @@ export const readMessage = async ({ sessionId, key }: SendReadTypes) => {
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
 
   await session.readMessages([key]);
+};
+
+export const sendPoll = async ({
+  sessionId,
+  to,
+  poll,
+  isGroup = false,
+  ...props
+}: SendPollTypes) => {
+  const session = getSession(sessionId);
+  if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
+  to = phoneToJid({ to, isGroup });
+
+  const pollMsg = {
+    poll: {
+      name: poll.name,
+      values: poll.values,
+      selectableCount: poll.selectableCount || 1,
+    },
+  };
+
+  return await session.sendMessage(to, pollMsg, {
+    quoted: props.answering,
+  });
 };
