@@ -5,4 +5,4 @@ export * from "./Types";
 export * from "./Profile";
 export * from "./Error";
 
-export * as baileys from "@whiskeysockets/baileys";
+export * as baileys from "baileys";

@@ -1,11 +1,11 @@
-import { WAMessageUpdate, proto } from "@whiskeysockets/baileys";
+import { WAMessage, WAMessageUpdate, proto } from "baileys";
 
 export interface SendMessageTypes {
   to: string | number;
   text?: string;
   sessionId: string;
   isGroup?: boolean;
-  answering?: proto.IWebMessageInfo;
+  answering?: WAMessage;
 }
 
 export interface SendMediaTypes extends SendMessageTypes {
@@ -19,7 +19,15 @@ export interface SendReadTypes {
   key: proto.IMessageKey;
 }
 
-export interface MessageReceived extends proto.IWebMessageInfo {
+export interface SendPollTypes extends SendMessageTypes {
+  poll: {
+    name: string;
+    values: string[];
+    selectableCount?: number;
+  };
+}
+
+export interface MessageReceived extends WAMessage {
   /**
    * Your Session ID
    */

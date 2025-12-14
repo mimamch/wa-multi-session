@@ -1,9 +1,10 @@
-import { proto } from "@whiskeysockets/baileys";
+import { proto, WAMessage } from "baileys";
 import { Messages } from "../Defaults";
 import { getSession } from "../Socket";
 import {
   SendMediaTypes,
   SendMessageTypes,
+  SendPollTypes,
   SendReadTypes,
   SendTypingTypes,
 } from "../Types";
@@ -19,7 +20,7 @@ export const sendTextMessage = async ({
   text = "",
   isGroup = false,
   ...props
-}: SendMessageTypes): Promise<proto.WebMessageInfo | undefined> => {
+}: SendMessageTypes): Promise<WAMessage | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
   to = phoneToJid({ to, isGroup });
@@ -41,7 +42,7 @@ export const sendImage = async ({
   isGroup = false,
   media,
   ...props
-}: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
+}: SendMediaTypes): Promise<WAMessage | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
   to = phoneToJid({ to, isGroup });
@@ -71,7 +72,7 @@ export const sendVideo = async ({
   isGroup = false,
   media,
   ...props
-}: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
+}: SendMediaTypes): Promise<WAMessage | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
   to = phoneToJid({ to, isGroup });
@@ -104,7 +105,7 @@ export const sendDocument = async ({
   ...props
 }: SendMediaTypes & {
   filename: string;
-}): Promise<proto.WebMessageInfo | undefined> => {
+}): Promise<WAMessage | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
   to = phoneToJid({ to, isGroup });
@@ -143,7 +144,7 @@ export const sendVoiceNote = async ({
   isGroup = false,
   media,
   ...props
-}: Omit<SendMediaTypes, "text">): Promise<proto.WebMessageInfo | undefined> => {
+}: Omit<SendMediaTypes, "text">): Promise<WAMessage | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
   to = phoneToJid({ to, isGroup });
@@ -175,7 +176,7 @@ export const sendSticker = async ({
   isGroup,
   media,
   ...props
-}: SendMediaTypes): Promise<proto.WebMessageInfo | undefined> => {
+}: SendMediaTypes): Promise<WAMessage | undefined> => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
   to = phoneToJid({ to, isGroup });
@@ -241,4 +242,28 @@ export const readMessage = async ({ sessionId, key }: SendReadTypes) => {
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
 
   await session.readMessages([key]);
+};
+
+export const sendPoll = async ({
+  sessionId,
+  to,
+  poll,
+  isGroup = false,
+  ...props
+}: SendPollTypes) => {
+  const session = getSession(sessionId);
+  if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
+  to = phoneToJid({ to, isGroup });
+
+  const pollMsg = {
+    poll: {
+      name: poll.name,
+      values: poll.values,
+      selectableCount: poll.selectableCount || 1,
+    },
+  };
+
+  return await session.sendMessage(to, pollMsg, {
+    quoted: props.answering,
+  });
 };

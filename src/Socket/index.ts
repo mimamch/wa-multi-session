@@ -4,9 +4,10 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
   WASocket,
-} from "@whiskeysockets/baileys";
+} from "baileys";
 import path from "path";
 import { Boom } from "@hapi/boom";
+import qrTerminal from "qrcode-terminal";
 import fs from "fs";
 import type {
   MessageReceived,
@@ -23,6 +24,7 @@ import {
 } from "../Utils/save-media";
 import { WhatsappError } from "../Error";
 import { parseMessageStatusCodeToReadable } from "../Utils/message-status";
+import { getSQLiteSessionIds, useSQLiteAuthState } from "../Store/Sqlite";
 
 const sessions: Map<string, WASocket> = new Map();
 
@@ -43,12 +45,9 @@ export const startSession = async (
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
-    const { state, saveCreds } = await useMultiFileAuthState(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    );
+    const { state, saveCreds } = await useSQLiteAuthState(sessionId);
     const sock: WASocket = makeWASocket({
       version,
-      printQRInTerminal: options.printQR,
       auth: state,
       logger: P,
       markOnlineOnConnect: false,
@@ -66,6 +65,12 @@ export const startSession = async (
               qr: update.qr,
             });
             options.onQRUpdated?.(update.qr);
+            if (options.printQR) {
+              qrTerminal.generate(update.qr, { small: true }, (qrcode) => {
+                console.log(sessionId + ":");
+                console.log(qrcode);
+              });
+            }
           }
           if (connection == "connecting") {
             callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
@@ -105,7 +110,7 @@ export const startSession = async (
             messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
             ...msg,
           };
-          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(data);
           options.onMessageUpdated?.(data);
         }
         if (events["messages.upsert"]) {
@@ -211,7 +216,7 @@ export const startSessionWithPairingCode = async (
             messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
             ...msg,
           };
-          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(sessionId, data);
+          callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(data);
         }
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
@@ -242,8 +247,10 @@ export const startWhatsapp = startSession;
 
 export const deleteSession = async (sessionId: string) => {
   const session = getSession(sessionId);
+  const authState = await useSQLiteAuthState(sessionId);
   try {
     await session?.logout();
+    await authState.deleteCreds();
   } catch (error) {}
   session?.end(undefined);
   sessions.delete(sessionId);
@@ -261,50 +268,28 @@ export const getSession = (key: string): WASocket | undefined =>
   sessions.get(key) as WASocket;
 
 const isSessionExistAndRunning = (sessionId: string): boolean => {
-  if (
-    fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
-    fs.existsSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ) &&
-    fs.readdirSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ).length &&
-    getSession(sessionId)
-  ) {
-    return true;
-  }
-  return false;
-};
-const shouldLoadSession = (sessionId: string): boolean => {
-  if (
-    fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME)) &&
-    fs.existsSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ) &&
-    fs.readdirSync(
-      path.resolve(CREDENTIALS.DIR_NAME, sessionId + CREDENTIALS.PREFIX)
-    ).length &&
-    !getSession(sessionId)
-  ) {
+  if (getSession(sessionId)) {
     return true;
   }
   return false;
 };
 
-export const loadSessionsFromStorage = () => {
-  if (!fs.existsSync(path.resolve(CREDENTIALS.DIR_NAME))) {
-    fs.mkdirSync(path.resolve(CREDENTIALS.DIR_NAME));
+type GetStartSessionOptionsProps = (
+  sessionid: string
+) => StartSessionParams | undefined | void;
+/**
+ * @returns loaded session ids
+ */
+export const loadSessionsFromStorage = async (
+  getOptions?: GetStartSessionOptionsProps
+) => {
+  const sessionIds = await getSQLiteSessionIds();
+  for (const sessionId of sessionIds) {
+    const options = getOptions?.(sessionId);
+    await startSession(sessionId, options || undefined);
   }
-  fs.readdir(path.resolve(CREDENTIALS.DIR_NAME), async (err, dirs) => {
-    if (err) {
-      throw err;
-    }
-    for (const dir of dirs) {
-      const sessionId = dir.split("_")[0];
-      if (!shouldLoadSession(sessionId)) continue;
-      startSession(sessionId);
-    }
-  });
+
+  return sessionIds;
 };
 
 export const onMessageReceived = (listener: (msg: MessageReceived) => any) => {
@@ -332,5 +317,5 @@ export const onMessageUpdate = (listener: (data: MessageUpdated) => any) => {
 export const onPairingCode = (
   listener: (sessionId: string, code: string) => any
 ) => {
-  callback.set(CALLBACK_KEY.ON_MESSAGE_UPDATED, listener);
+  callback.set(CALLBACK_KEY.ON_PAIRING_CODE, listener);
 };
