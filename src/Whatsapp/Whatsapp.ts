@@ -15,6 +15,7 @@ import {
   MessageUpdated,
   SendMediaTypes,
   SendMessageTypes,
+  SendPollTypes,
   SendReadTypes,
   SendTypingTypes,
   StartSessionParams,
@@ -498,6 +499,26 @@ export class Whatsapp {
         quoted: props.answering,
       }
     );
+  };
+
+  /**
+   * Send Polling Message
+   */
+  sendPoll = async (props: SendPollTypes) => {
+    const session = await this.getSessionByIdReadyOrThrow(props.sessionId);
+    const to = phoneToJid({ to: props.to, isGroup: props.isGroup });
+
+    const pollMsg = {
+      poll: {
+        name: props.poll.name,
+        values: props.poll.values,
+        selectableCount: props.poll.selectableCount || 1,
+      },
+    };
+
+    return await session.sock.sendMessage(to, pollMsg, {
+      quoted: props.answering,
+    });
   };
 
   /**
