@@ -19,6 +19,14 @@ export interface SendReadTypes {
   key: proto.IMessageKey;
 }
 
+export interface SendPollTypes extends SendMessageTypes {
+  poll: {
+    name: string;
+    values: string[];
+    selectableCount?: number;
+  };
+}
+
 export interface MessageReceived extends WAMessage {
   /**
    * Your Session ID
