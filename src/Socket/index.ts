@@ -23,6 +23,7 @@ import { WhatsappError } from "../Error";
 import { parseMessageStatusCodeToReadable } from "../Utils/message-status";
 import { getSQLiteSessionIds, SQLiteStore } from "../Store/Sqlite";
 import { LegacyStore } from "../Store/Store";
+import { createDelay } from "../Utils/create-delay";
 
 const sessions: Map<
   string,
@@ -40,6 +41,9 @@ const P = require("pino")({
   level: "silent",
 });
 
+/**
+ * Start a session with QR Code scanning
+ */
 export const startSession = async (
   sessionId = "mysession",
   options: StartSessionParams = { printQR: true }
@@ -141,18 +145,23 @@ export const startSession = async (
 };
 
 /**
- *
- * @deprecated Use startSession method instead
+ * Start a session using Phone Number Pairing Code (Beta)
+ * This function is separated to ensure stability and independent logic from QR flow
+ * @beta This function is currently in beta testing
  */
 export const startSessionWithPairingCode = async (
   sessionId: string,
   options: StartSessionWithPairingCodeParams
 ): Promise<WASocket> => {
+  console.log(
+    "startSessionWithPairingCode is currently in beta testing. Please report any issues."
+  );
   if (isSessionExistAndRunning(sessionId))
     throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
 
   const { version } = await fetchLatestBaileysVersion();
   const startSocket = async () => {
+    let isPairingCodeRequested = false;
     const store = options.store || new SQLiteStore(sessionId);
     const sock: WASocket = makeWASocket({
       version,
@@ -164,13 +173,6 @@ export const startSessionWithPairingCode = async (
     });
     sessions.set(sessionId, { sock: sock, store: store });
     try {
-      if (!sock.authState.creds.registered) {
-        console.log("first time pairing");
-        const code = await sock.requestPairingCode(options.phoneNumber);
-        console.log(code);
-        callback.get(CALLBACK_KEY.ON_PAIRING_CODE)?.(sessionId, code);
-      }
-
       sock.ev.process(async (events) => {
         if (events["connection.update"]) {
           const update = events["connection.update"];
@@ -181,6 +183,29 @@ export const startSessionWithPairingCode = async (
               qr: update.qr,
             });
           }
+
+          // Handle pairing code request if not registered
+          if (
+            !sock.authState.creds.registered &&
+            (connection === "connecting" || !!update.qr) &&
+            !isPairingCodeRequested
+          ) {
+            isPairingCodeRequested = true; // Prevents race conditions / multiple requests
+            console.log("pairing");
+
+            // Add delay to ensure connection is stable before requesting code
+            await createDelay(2000);
+
+            try {
+              const code = await sock.requestPairingCode(options.phoneNumber);
+              console.log(code);
+              callback.get(CALLBACK_KEY.ON_PAIRING_CODE)?.(sessionId, code);
+            } catch (error) {
+              console.log("Error Requesting Pairing Code", error);
+              isPairingCodeRequested = false; // Reset flag to allow retry on error
+            }
+          }
+
           if (connection == "connecting") {
             callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
           }
