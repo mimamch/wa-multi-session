@@ -25,7 +25,7 @@ export const sendTextMessage = async ({
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
   to = phoneToJid({ to, isGroup });
 
-  return await session.sendMessage(
+  return await session.sock.sendMessage(
     to,
     {
       text: text,
@@ -49,7 +49,7 @@ export const sendImage = async ({
 
   if (!media)
     throw new WhatsappError("parameter media must be Buffer or String URL");
-  return await session.sendMessage(
+  return await session.sock.sendMessage(
     to,
     {
       image:
@@ -79,7 +79,7 @@ export const sendVideo = async ({
 
   if (!media)
     throw new WhatsappError("parameter media must be Buffer or String URL");
-  return await session.sendMessage(
+  return await session.sock.sendMessage(
     to,
     {
       video:
@@ -119,7 +119,7 @@ export const sendDocument = async ({
     throw new WhatsappError(`Filename must include valid extension`);
   }
 
-  return await session.sendMessage(
+  return await session.sock.sendMessage(
     to,
     {
       fileName: filename,
@@ -153,7 +153,7 @@ export const sendVoiceNote = async ({
     throw new WhatsappError(`Invalid Media`);
   }
 
-  return await session.sendMessage(
+  return await session.sock.sendMessage(
     to,
     {
       audio:
@@ -185,7 +185,7 @@ export const sendSticker = async ({
     throw new WhatsappError(`Invalid Media`);
   }
 
-  return await session.sendMessage(
+  return await session.sock.sendMessage(
     to,
     {
       sticker:
@@ -222,9 +222,9 @@ export const sendTyping = async ({
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
 
-  await session.sendPresenceUpdate("composing", to);
+  await session.sock.sendPresenceUpdate("composing", to);
   await createDelay(duration);
-  await session.sendPresenceUpdate("available", to);
+  await session.sock.sendPresenceUpdate("available", to);
 };
 
 /**
@@ -241,7 +241,7 @@ export const readMessage = async ({ sessionId, key }: SendReadTypes) => {
   const session = getSession(sessionId);
   if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
 
-  await session.readMessages([key]);
+  await session.sock.readMessages([key]);
 };
 
 export const sendPoll = async ({
@@ -263,7 +263,7 @@ export const sendPoll = async ({
     },
   };
 
-  return await session.sendMessage(to, pollMsg, {
+  return await session.sock.sendMessage(to, pollMsg, {
     quoted: props.answering,
   });
 };

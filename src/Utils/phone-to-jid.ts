@@ -17,8 +17,7 @@ export const phoneToJid = ({
   if (!to) throw new WhatsappError('parameter "to" is required');
   let number = to.toString().replace(/\s|\+/g, "");
 
-  // if any group JID (@g.us), leave the (-) return it as is
-  if (number.endsWith("@g.us")) {
+  if (number.includes("@")) {
     return number;
   }
 

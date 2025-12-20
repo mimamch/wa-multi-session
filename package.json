@@ -1,6 +1,6 @@
 {
   "name": "wa-multi-session",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Multi Session Whatsapp Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,7 +27,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:mimamch/wa-multi-session.git"
+    "url": "git+ssh://git@github.com/mimamch/wa-multi-session.git"
   },
   "devDependencies": {
     "@types/mime": "^3.0.1",

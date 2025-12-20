@@ -10,7 +10,7 @@ Stand above [Baileys](https://github.com/WhiskeySockets/Baileys) Library.
 
 Install package using npm
 
-```
+```bash
 npm install wa-multi-session@latest
 ```
 
@@ -19,13 +19,34 @@ Then import your code
 Using JS Module
 
 ```ts
-import * as whatsapp from "wa-multi-session";
+import { Whatsapp, SQLiteAdapter } from "wa-multi-session";
 ```
 
 or using CommonJS
 
 ```ts
-const whatsapp = require("wa-multi-session");
+const { Whatsapp, SQLiteAdapter } = require("wa-multi-session");
+```
+
+## Initialization
+
+Create new Whatsapp Instance
+
+```ts
+const whatsapp = new Whatsapp({
+  adapter: new SQLiteAdapter(),
+
+  // Optional: Add Listener/Callback
+  onConnecting: (sessionId) => {
+    console.log(`[${sessionId}] Connecting...`);
+  },
+  onConnected: (sessionId) => {
+    console.log(`[${sessionId}] Connected`);
+  },
+  onDisconnected: (sessionId) => {
+    console.log(`[${sessionId}] Disconnected`);
+  },
+});
 ```
 
 ## Session Usage/Examples
@@ -33,31 +54,36 @@ const whatsapp = require("wa-multi-session");
 Start New Session
 
 ```ts
-// create session with ID : mysessionid
+// create session with ID : session1
 
-const session = await whatsapp.startSession("mysessionid");
+const session = await whatsapp.startSession("session1");
 // Then, scan QR on terminal
+```
+
+Start Session with Pairing Code (Phone Number) (Beta)
+
+```ts
+// This function is currently in beta testing
+const session = await whatsapp.startSessionWithPairingCode("mysessionid", {
+  phoneNumber: "6281234567890",
+});
+whatsapp.onPairingCode((sessionId, code) => {
+  console.log(sessionId, code);
+});
 ```
 
 Get All Session ID
 
 ```ts
-const sessions = whatsapp.getAllSession();
+const sessions = await whatsapp.getSessionsIds();
 // returning all session ID that has been created
 ```
 
 Get Session Data By ID
 
 ```ts
-const session = whatsapp.getSession("mysessionid");
+const session = await whatsapp.getSessionById("session1");
 // returning session data
-```
-
-Load Session From Storage / Load Saved Session
-
-```ts
-whatsapp.loadSessionsFromStorage();
-// Start saved session without scan again
 ```
 
 ## Messaging Usage/Examples
@@ -65,17 +91,17 @@ whatsapp.loadSessionsFromStorage();
 Send Text Message
 
 ```ts
-await whatsapp.sendTextMessage({
-  sessionId: "mysessionid", // session ID
-  to: "6281234567890", // always add country code (ex: 62)
-  text: "Hi There, This is Message from Server!", // message you want to send
+await whatsapp.sendText({
+  sessionId: "session1", // session ID
+  to: "6281234567890",
+  text: "Hi There, This is Message from Server!",
 });
 ```
 
 Send Image
 
 ```ts
-const image = fs.readFileSync("./myimage.png"); // return Buffer
+const image = fs.readFileSync("./myimage.png"); // Buffer
 const send = await whatsapp.sendImage({
   sessionId: "session1",
   to: "6281234567890",
@@ -87,7 +113,7 @@ const send = await whatsapp.sendImage({
 Send Video
 
 ```ts
-const video = fs.readFileSync("./myvideo.mp4"); // return Buffer
+const video = fs.readFileSync("./myvideo.mp4"); // Buffer
 const send = await whatsapp.sendVideo({
   sessionId: "session1",
   to: "6281234567890",
@@ -100,7 +126,7 @@ Send Document File
 
 ```ts
 const filename = "mydocument.docx";
-const document = fs.readFileSync(filename); // return Buffer
+const document = fs.readFileSync(filename); // Buffer
 const send = await whatsapp.sendDocument({
   sessionId: "session1",
   to: "6281234567890",
@@ -114,11 +140,12 @@ Send Voice Note
 
 ```ts
 const filename = "myaudio.mp3";
-const audio = fs.readFileSync(filename); // return Buffer
-const send = await whatsapp.sendVoiceNote({
+const audio = fs.readFileSync(filename); // Buffer
+const send = await whatsapp.sendAudio({
   sessionId: "session1",
   to: "6281234567890",
   media: audio,
+  asVoiceNote: true, // send as voice note (ptt)
 });
 ```
 
@@ -134,7 +161,7 @@ await whatsapp.readMessage({
 Send Typing Effect
 
 ```ts
-await whatsapp.sendTyping({
+await whatsapp.sendTypingIndicator({
   sessionId: "session1",
   to: "6281234567890",
   duration: 3000,
@@ -148,80 +175,61 @@ await whatsapp.sendPoll({
   sessionId: "session1",
   to: "6281234567890",
   poll: {
-    name: "My Poll",
-    values: ["Cahyo", "Nabil", "Haikal", "Nopal"],
+    name: "Your favorite programming language?",
+    values: ["JavaScript", "Python", "Go", "Rust"],
     selectableCount: 1, // number of values can be selected
   },
-});
-```
-
-## Listener Usage/Examples
-
-Add Listener/Callback When Receive a Message
-
-```ts
-whatsapp.onMessageReceived((msg) => {
-  console.log(`New Message Received On Session: ${msg.sessionId} >>>`, msg);
-});
-```
-
-Add Listener/Callback When QR Printed
-
-```ts
-whatsapp.onQRUpdated(({ sessionId, qr }) => {
-  console.log(qr);
-});
-```
-
-Add Listener/Callback When Session Connected
-
-```ts
-whatsapp.onConnected((sessionId) => {
-  console.log("session connected :" + sessionId);
 });
 ```
 
 ## Handling Incoming Message Examples
 
 ```ts
-whatsapp.onMessageReceived(async (msg) => {
-  if (msg.key.fromMe || msg.key.remoteJid.includes("status")) return;
-  await whatsapp.readMessage({
-    sessionId: msg.sessionId,
-    key: msg.key,
-  });
-  await whatsapp.sendTyping({
-    sessionId: msg.sessionId,
-    to: msg.key.remoteJid,
-    duration: 3000,
-  });
-  await whatsapp.sendTextMessage({
-    sessionId: msg.sessionId,
-    to: msg.key.remoteJid,
-    text: "Hello!",
-    answering: msg, // for quoting message
-  });
+const whatsapp = new Whatsapp({
+  adapter: new SQLiteAdapter(),
+  onMessageReceived: async (msg) => {
+    if (msg.key.fromMe || msg.key.remoteJid?.includes("status")) return;
+    const sender = msg.key.participant || msg.key.remoteJid!;
+    await whatsapp.readMessage({
+      sessionId: msg.sessionId,
+      key: msg.key,
+    });
+    await whatsapp.sendTypingIndicator({
+      sessionId: msg.sessionId,
+      to: sender,
+      duration: 3000,
+    });
+    await whatsapp.sendText({
+      sessionId: msg.sessionId,
+      to: sender,
+      text: `You said: ${msg.message?.conversation || ""}`,
+      answering: msg, // for quoting message
+    });
+  },
 });
 ```
 
 ## Save Media Message (Image, Video, Document)
 
 ```ts
-wa.onMessageReceived(async (msg) => {
-  if (msg.message?.imageMessage) {
-    // save image
-    msg.saveImage("./myimage.jpg");
-  }
+const whatsapp = new Whatsapp({
+  adapter: new SQLiteAdapter(),
+  onMessageReceived: async (msg) => {
+    if (msg.message?.imageMessage) {
+      // save image
+      msg.saveImage("./myimage.jpg");
+    }
 
-  if (msg.message?.videoMessage) {
-    // save video
-    msg.saveVideo("./myvideo.mp4");
-  }
+    if (msg.message?.videoMessage) {
+      // save video
+      msg.saveVideo("./myvideo.mp4");
+    }
 
-  if (msg.message?.documentMessage) {
-    // save document
-    msg.saveDocument("./mydocument"); // without extension
-  }
+    if (msg.message?.documentMessage) {
+      // save document
+      msg.saveDocument("./mydocument"); // without extension
+    }
+  },
 });
 ```
 
@@ -230,9 +238,10 @@ wa.onMessageReceived(async (msg) => {
 Set custom credentials directory
 
 ```ts
-// default dir is "wa_credentials"
-whatsapp.setCredentialsDir("my_custom_dir");
-// or : credentials/mycreds
+// use adapter to set custom directory
+const adapter = new SQLiteAdapter({
+  databasePath: "my_custom_dir/database.db",
+});
 ```
 
 ## Also Visit Headless Whatsapp Gateway API
