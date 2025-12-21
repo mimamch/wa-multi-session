@@ -82,6 +82,17 @@ export interface StartSessionWithPairingCodeParams {
    */
   phoneNumber: string;
 
+  // session events
+  onQRUpdated?: (qr: string) => void;
+  onConnected?: () => void;
+  onConnecting?: () => void;
+  onDisconnected?: () => void;
+  onPairingCode?: (code: string) => void;
+
+  // message events
+  onMessageReceived?: (message: MessageReceived) => void;
+  onMessageUpdated?: (message: MessageUpdated) => void;
+
   // store
   store?: LegacyStore;
 }

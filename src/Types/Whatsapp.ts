@@ -13,6 +13,7 @@ export type WhatsappConstructorProps = {
   onConnecting?: (sessionId: string) => any;
   onConnected?: (sessionId: string) => any;
   onDisconnected?: (sessionId: string) => any;
+  onPairingCode?: (sessionId: string, code: string) => void;
   onMessageUpdated?: (data: MessageUpdated) => any;
   onMessageReceived?: (msg: MessageReceived) => any;
   onQRUpdated?: (qr: string) => any;

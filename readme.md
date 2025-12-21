@@ -51,24 +51,25 @@ const whatsapp = new Whatsapp({
 
 ## Session Usage/Examples
 
-Start New Session
+Start New Session with QR Code
 
 ```ts
 // create session with ID : session1
 
-const session = await whatsapp.startSession("session1");
+const session = await whatsapp.startSession("session1", {
+  printQR: true, // print QR on terminal
+});
 // Then, scan QR on terminal
 ```
 
-Start Session with Pairing Code (Phone Number) (Beta)
+or Start Session with Pairing Code (Phone Number) (Experimental)
 
 ```ts
-// This function is currently in beta testing
 const session = await whatsapp.startSessionWithPairingCode("mysessionid", {
   phoneNumber: "6281234567890",
-});
-whatsapp.onPairingCode((sessionId, code) => {
-  console.log(sessionId, code);
+  onPairingCode(code) {
+    console.log(`Pairing Code: ${code}`);
+  },
 });
 ```
 
