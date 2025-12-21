@@ -60,6 +60,18 @@ const session = await whatsapp.startSession("session1");
 // Then, scan QR on terminal
 ```
 
+Start Session with Pairing Code (Phone Number) (Beta)
+
+```ts
+// This function is currently in beta testing
+const session = await whatsapp.startSessionWithPairingCode("mysessionid", {
+  phoneNumber: "6281234567890",
+});
+whatsapp.onPairingCode((sessionId, code) => {
+  console.log(sessionId, code);
+});
+```
+
 Get All Session ID
 
 ```ts
