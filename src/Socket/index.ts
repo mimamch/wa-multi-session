@@ -124,6 +124,10 @@ export const startSession = async (
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
             .messages?.[0] as unknown as MessageReceived;
+          if (msg?.message?.protocolMessage) {
+            // ignore history sync messages
+            return;
+          }
           msg.sessionId = sessionId;
           msg.saveImage = (path) => saveImageHandler(msg, path);
           msg.saveVideo = (path) => saveVideoHandler(msg, path);
@@ -248,6 +252,10 @@ export const startSessionWithPairingCode = async (
         if (events["messages.upsert"]) {
           const msg = events["messages.upsert"]
             .messages?.[0] as unknown as MessageReceived;
+          if (msg?.message?.protocolMessage) {
+            // ignore history sync messages
+            return;
+          }
           msg.sessionId = sessionId;
           msg.saveImage = (path) => saveImageHandler(msg, path);
           msg.saveVideo = (path) => saveVideoHandler(msg, path);
