@@ -5,7 +5,7 @@ import makeWASocket, {
   WASocket,
 } from "baileys";
 import { Boom } from "@hapi/boom";
-import qrTerminal from "qrcode-terminal";
+import QRCode from "qrcode";
 import type {
   MessageReceived,
   MessageUpdated,
@@ -74,10 +74,14 @@ export const startSession = async (
             });
             options.onQRUpdated?.(update.qr);
             if (options.printQR) {
-              qrTerminal.generate(update.qr, { small: true }, (qrcode) => {
-                console.log(sessionId + ":");
-                console.log(qrcode);
-              });
+              QRCode.toString(
+                update.qr,
+                { type: "terminal", small: true },
+                (error, qrcode) => {
+                  console.log(sessionId + ":");
+                  console.log(qrcode);
+                }
+              );
             }
           }
           if (connection == "connecting") {

@@ -8,8 +8,8 @@ import makeWASocket, {
   SignalDataTypeMap,
   WASocket,
 } from "baileys";
-import qrTerminal from "qrcode-terminal";
 import { Adapter } from "../Adapter/Adapter";
+import QRCode from "qrcode";
 import {
   MessageReceived,
   MessageUpdated,
@@ -188,10 +188,14 @@ export class Whatsapp {
               });
               options.onQRUpdated?.(update.qr);
               if (options.printQR) {
-                qrTerminal.generate(update.qr, { small: true }, (qrcode) => {
-                  console.log(sessionId + ":");
-                  console.log(qrcode);
-                });
+                QRCode.toString(
+                  update.qr,
+                  { type: "terminal", small: true },
+                  (error, qrcode) => {
+                    console.log(sessionId + ":");
+                    console.log(qrcode);
+                  }
+                );
               }
             }
             if (connection == "connecting") {
