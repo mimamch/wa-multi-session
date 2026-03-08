@@ -19,7 +19,7 @@ import {
   SendReadTypes,
   SendTypingTypes,
   StartSessionParams,
-  StartSessionWithPairingCodeOptions,
+  StartSessionWithPairingCodeOptions
 } from "../Types";
 import { CALLBACK_KEY, Messages } from "../Defaults";
 import { WhatsappError } from "../Error";
@@ -34,7 +34,7 @@ import {
   saveAudioHandler,
   saveDocumentHandler,
   saveImageHandler,
-  saveVideoHandler,
+  saveVideoHandler
 } from "../Utils/save-media";
 import { WhatsappConstructorProps } from "../Types/Whatsapp";
 import { Session, Store } from "../Types/Store";
@@ -78,7 +78,7 @@ export class Whatsapp {
     return session;
   }
   private async getSessionByIdReadyOrThrow(
-    sessionId: string,
+    sessionId: string
   ): Promise<Session> {
     const session = await this.getSessionById(sessionId);
     if (!session) throw new WhatsappError(Messages.sessionNotFound(sessionId));
@@ -98,7 +98,7 @@ export class Whatsapp {
   private getStore = async (sessionId: string): Promise<Store> => {
     const creds: AuthenticationCreds =
       stringToJsonBufferParser(
-        await this.adapter.readData(sessionId, "creds"),
+        await this.adapter.readData(sessionId, "creds")
       ) || initAuthCreds();
 
     return {
@@ -109,7 +109,7 @@ export class Whatsapp {
             const data: { [_: string]: SignalDataTypeMap[typeof type] } = {};
             for (const id of ids) {
               let value = stringToJsonBufferParser(
-                await this.adapter.readData(sessionId, `${type}-${id}`),
+                await this.adapter.readData(sessionId, `${type}-${id}`)
               );
               if (type === "app-state-sync-key" && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
@@ -127,7 +127,7 @@ export class Whatsapp {
                     sessionId,
                     `${category}-${id}`,
                     category,
-                    jsonBufferToStringParser(value),
+                    jsonBufferToStringParser(value)
                   );
                 } else {
                   await this.adapter.deleteData(sessionId, `${category}-${id}`);
@@ -142,12 +142,12 @@ export class Whatsapp {
           sessionId,
           "creds",
           "credentials",
-          jsonBufferToStringParser(creds),
+          jsonBufferToStringParser(creds)
         );
       },
       clearCreds: async () => {
         await this.adapter.clearData(sessionId);
-      },
+      }
     };
   };
 
@@ -156,7 +156,7 @@ export class Whatsapp {
    */
   async startSession(
     sessionId: string,
-    options: StartSessionParams = { printQR: true },
+    options: StartSessionParams = { printQR: true }
   ): Promise<WASocket> {
     if (await this.isSessionExistAndRunning(sessionId))
       throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
@@ -194,7 +194,7 @@ export class Whatsapp {
                   (error, qrcode) => {
                     console.log(sessionId + ":");
                     console.log(qrcode);
-                  },
+                  }
                 );
               }
             }
@@ -241,7 +241,7 @@ export class Whatsapp {
             const data: MessageUpdated = {
               sessionId: sessionId,
               messageStatus: parseMessageStatusCodeToReadable(
-                msg.update.status!,
+                msg.update.status!
               ),
               ...msg,
             };
@@ -283,7 +283,7 @@ export class Whatsapp {
    * */
   async startSessionWithPairingCode(
     sessionId: string,
-    options: StartSessionWithPairingCodeOptions,
+    options: StartSessionWithPairingCodeOptions
   ): Promise<WASocket> {
     if (await this.isSessionExistAndRunning(sessionId))
       throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
@@ -437,13 +437,13 @@ export class Whatsapp {
     if (props.onMessageUpdated) {
       this.callback.set(
         CALLBACK_KEY.ON_MESSAGE_UPDATED,
-        props.onMessageUpdated,
+        props.onMessageUpdated
       );
     }
     if (props.onMessageReceived) {
       this.callback.set(
         CALLBACK_KEY.ON_MESSAGE_RECEIVED,
-        props.onMessageReceived,
+        props.onMessageReceived
       );
     }
     if (props.onQRUpdated) {
@@ -502,7 +502,7 @@ export class Whatsapp {
       },
       {
         quoted: props.answering,
-      },
+      }
     );
   };
 
@@ -526,7 +526,7 @@ export class Whatsapp {
       },
       {
         quoted: props.answering,
-      },
+      }
     );
   };
 
@@ -550,7 +550,7 @@ export class Whatsapp {
       },
       {
         quoted: props.answering,
-      },
+      }
     );
   };
 
@@ -585,7 +585,7 @@ export class Whatsapp {
       },
       {
         quoted: props.answering,
-      },
+      }
     );
   };
 
@@ -595,7 +595,7 @@ export class Whatsapp {
   sendAudio = async (
     props: Omit<SendMediaTypes, "text"> & {
       asVoiceNote?: boolean;
-    },
+    }
   ) => {
     const session = await this.getSessionByIdReadyOrThrow(props.sessionId);
     const to = phoneToJid({ to: props.to, isGroup: props.isGroup });
@@ -617,7 +617,7 @@ export class Whatsapp {
       },
       {
         quoted: props.answering,
-      },
+      }
     );
   };
 
@@ -644,7 +644,7 @@ export class Whatsapp {
       },
       {
         quoted: props.answering,
-      },
+      }
     );
   };
 
@@ -660,7 +660,7 @@ export class Whatsapp {
         name: props.poll.name,
         values: props.poll.values,
         selectableCount: props.poll.selectableCount || 1,
-      },
+      }
     };
 
     return await session.sock.sendMessage(to, pollMsg, {
