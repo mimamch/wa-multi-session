@@ -1,6 +1,7 @@
 import makeWASocket, {
   AuthenticationCreds,
   Browsers,
+  ConnectionState,
   DisconnectReason,
   fetchLatestBaileysVersion,
   initAuthCreds,
@@ -41,6 +42,14 @@ import { Session, Store } from "../Types/Store";
 import { createDelay, phoneToJid } from "../Utils";
 import mime from "mime";
 import { GetProfileInfoProps } from "../Types/profile";
+
+interface CommonSessionOptions {
+  onConnecting?: () => void;
+  onConnected?: () => void;
+  onDisconnected?: () => void;
+  onMessageReceived?: (message: MessageReceived) => void;
+  onMessageUpdated?: (message: MessageUpdated) => void;
+}
 
 export class Whatsapp {
   private adapter: Adapter;
@@ -151,18 +160,15 @@ export class Whatsapp {
     };
   };
 
-  /**
-   * Start a new Whatsapp Session
-   */
-  async startSession(
+  private async _startSocket(
     sessionId: string,
-    options: StartSessionParams = { printQR: true }
+    options: CommonSessionOptions,
+    socketConfig: { printQRInTerminal?: boolean },
+    makeConnectionUpdateHandler?: () => (update: Partial<ConnectionState>, sock: WASocket) => Promise<void>
   ): Promise<WASocket> {
-    if (await this.isSessionExistAndRunning(sessionId))
-      throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
-
     const { version } = await fetchLatestBaileysVersion();
-    const startSocket = async () => {
+
+    const startSocket = async (): Promise<WASocket> => {
       const store = await this.getStore(sessionId);
       const sock: WASocket = makeWASocket({
         version,
@@ -170,172 +176,21 @@ export class Whatsapp {
         logger: this.P,
         markOnlineOnConnect: false,
         browser: Browsers.ubuntu("Chrome"),
-      });
-      this.sessions.set(sessionId, {
-        sock: sock,
-        store: store,
-        status: "connecting",
-      });
-      try {
-        sock.ev.process(async (events) => {
-          if (events["connection.update"]) {
-            const update = events["connection.update"];
-            const { connection, lastDisconnect } = update;
-            if (update.qr) {
-              this.callback.get(CALLBACK_KEY.ON_QR)?.({
-                sessionId,
-                qr: update.qr,
-              });
-              options.onQRUpdated?.(update.qr);
-              if (options.printQR) {
-                QRCode.toString(
-                  update.qr,
-                  { type: "terminal", small: true },
-                  (error, qrcode) => {
-                    console.log(sessionId + ":");
-                    console.log(qrcode);
-                  }
-                );
-              }
-            }
-            if (connection == "connecting") {
-              this.callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
-              options.onConnecting?.();
-              const session = this.sessions.get(sessionId);
-              if (session) this.sessions.get(sessionId).status = "connecting";
-            }
-            if (connection === "close") {
-              const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
-              let retryAttempt = this.retryCount.get(sessionId) ?? 0;
-              let shouldRetry = false;
-              if (code != DisconnectReason.loggedOut && retryAttempt < 10) {
-                shouldRetry = true;
-              }
-              if (shouldRetry) {
-                retryAttempt++;
-                this.retryCount.set(sessionId, retryAttempt);
-                startSocket();
-              } else {
-                const session = this.sessions.get(sessionId);
-                if (session)
-                  this.sessions.get(sessionId).status = "disconnected";
-                this.retryCount.delete(sessionId);
-                this.deleteSession(sessionId);
-                this.callback.get(CALLBACK_KEY.ON_DISCONNECTED)?.(sessionId);
-                options.onDisconnected?.();
-              }
-            }
-            if (connection == "open") {
-              this.retryCount.delete(sessionId);
-              this.callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
-              const session = this.sessions.get(sessionId);
-              if (session) this.sessions.get(sessionId).status = "connected";
-              options.onConnected?.();
-            }
-          }
-          if (events["creds.update"]) {
-            await store.saveCreds();
-          }
-          if (events["messages.update"]) {
-            const msg = events["messages.update"][0];
-            const data: MessageUpdated = {
-              sessionId: sessionId,
-              messageStatus: parseMessageStatusCodeToReadable(
-                msg.update.status!
-              ),
-              ...msg,
-            };
-            this.callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(data);
-            options.onMessageUpdated?.(data);
-          }
-          if (events["messages.upsert"]) {
-            const msg = events["messages.upsert"]
-              .messages?.[0] as unknown as MessageReceived;
-            if (msg?.message?.protocolMessage) {
-              // ignore history sync messages
-              return;
-            }
-            msg.sessionId = sessionId;
-            msg.saveImage = (path) => saveImageHandler(msg, path);
-            msg.saveVideo = (path) => saveVideoHandler(msg, path);
-            msg.saveDocument = (path) => saveDocumentHandler(msg, path);
-            msg.saveAudio = (path) => saveAudioHandler(msg, path);
-            this.callback.get(CALLBACK_KEY.ON_MESSAGE_RECEIVED)?.({
-              ...msg,
-            });
-            options.onMessageReceived?.(msg);
-          }
-        });
-        return sock;
-      } catch (error) {
-        return sock;
-      }
-    };
-    try {
-      return startSocket();
-    } catch (error) {
-      console.error("!! => session error");
-    }
-  }
-
-  /**
-   * Start a new WhatsApp session authenticated via stable pairing code instead of QR scan.
-   * */
-  async startSessionWithPairingCode(
-    sessionId: string,
-    options: StartSessionWithPairingCodeOptions
-  ): Promise<WASocket> {
-    if (await this.isSessionExistAndRunning(sessionId))
-      throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
-
-    const { version } = await fetchLatestBaileysVersion();
-    const startSocket = async () => {
-      // Guard flag: ensures we only request one pairing code per socket lifetime,
-      // even if multiple "connecting" events arrive before the code is issued.
-      let isPairingCodeRequested = false;
-      const store = await this.getStore(sessionId);
-      const sock: WASocket = makeWASocket({
-        version,
-        printQRInTerminal: false, // QR is irrelevant for pairing-code flow
-        auth: store.state,
-        logger: this.P,
-        markOnlineOnConnect: false,
-        browser: Browsers.ubuntu("Chrome"),
+        ...socketConfig,
       });
       this.sessions.set(sessionId, { sock, store, status: "connecting" });
+
+      const onConnectionUpdate = makeConnectionUpdateHandler?.();
+
       try {
         sock.ev.process(async (events) => {
           if (events["connection.update"]) {
             const update = events["connection.update"];
             const { connection, lastDisconnect } = update;
 
-            // Request the pairing code exactly once, as soon as the socket starts
-            // connecting and the account credentials are not yet registered.
-            // A 2-second delay is applied before the request to ensure the
-            // Baileys handshake has had time to exchange keys with WhatsApp servers.
-            if (
-              !sock.authState.creds.registered &&
-              (connection === "connecting" || !!update.qr) &&
-              !isPairingCodeRequested
-            ) {
-              isPairingCodeRequested = true;
-              await createDelay(2000);
-              try {
-                const code = await sock.requestPairingCode(options.phoneNumber);
-                // Notify both the global (constructor-level) callback and the per-call callback.
-                this.callback.get(CALLBACK_KEY.ON_PAIRING_CODE)?.(
-                  sessionId,
-                  code,
-                );
-                options.onPairingCode?.(code);
-              } catch (error) {
-                console.log("Error Requesting Pairing Code", error);
-                // Reset the flag so the next connection event can retry the request.
-                isPairingCodeRequested = false;
-              }
-            }
+            if (onConnectionUpdate) await onConnectionUpdate(update, sock);
 
-            if (connection == "connecting") {
+            if (connection === "connecting") {
               this.callback.get(CALLBACK_KEY.ON_CONNECTING)?.(sessionId);
               options.onConnecting?.();
               this.sessions.get(sessionId)!.status = "connecting";
@@ -343,8 +198,7 @@ export class Whatsapp {
             if (connection === "close") {
               const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
               let retryAttempt = this.retryCount.get(sessionId) ?? 0;
-              let shouldRetry;
-              // Retry on any disconnection except an explicit logout, up to 10 attempts.
+              let shouldRetry = false;
               if (code !== DisconnectReason.loggedOut && retryAttempt < 10) {
                 shouldRetry = true;
               }
@@ -353,7 +207,6 @@ export class Whatsapp {
                 this.retryCount.set(sessionId, retryAttempt);
                 startSocket();
               } else {
-                // Max retries exceeded or user logged out — clean up the session.
                 this.sessions.get(sessionId)!.status = "disconnected";
                 this.retryCount.delete(sessionId);
                 this.deleteSession(sessionId);
@@ -361,7 +214,7 @@ export class Whatsapp {
                 options.onDisconnected?.();
               }
             }
-            if (connection == "open") {
+            if (connection === "open") {
               this.retryCount.delete(sessionId);
               this.callback.get(CALLBACK_KEY.ON_CONNECTED)?.(sessionId);
               this.sessions.get(sessionId)!.status = "connected";
@@ -369,26 +222,22 @@ export class Whatsapp {
             }
           }
           if (events["creds.update"]) {
-            // Persist updated credentials (e.g. after pairing or key rotation).
             await store.saveCreds();
           }
           if (events["messages.update"]) {
             const msg = events["messages.update"][0];
             const data: MessageUpdated = {
               sessionId,
-              messageStatus: parseMessageStatusCodeToReadable(
-                msg.update.status!,
-              ),
+              messageStatus: parseMessageStatusCodeToReadable(msg.update.status!),
               ...msg,
             };
             this.callback.get(CALLBACK_KEY.ON_MESSAGE_UPDATED)?.(data);
             options.onMessageUpdated?.(data);
           }
           if (events["messages.upsert"]) {
-            const msg = events["messages.upsert"]
-              .messages?.[0] as unknown as MessageReceived;
+            const msg = events["messages.upsert"].messages?.[0] as unknown as MessageReceived;
+            if (msg?.message?.protocolMessage) return;
             msg.sessionId = sessionId;
-            // Attach convenience save helpers so consumers can persist media without extra imports.
             msg.saveImage = (path) => saveImageHandler(msg, path);
             msg.saveVideo = (path) => saveVideoHandler(msg, path);
             msg.saveDocument = (path) => saveDocumentHandler(msg, path);
@@ -402,7 +251,71 @@ export class Whatsapp {
         return sock;
       }
     };
+
     return startSocket();
+  }
+
+  /**
+   * Start a new Whatsapp Session
+   */
+  async startSession(
+    sessionId: string,
+    options: StartSessionParams = { printQR: true }
+  ): Promise<WASocket> {
+    if (await this.isSessionExistAndRunning(sessionId))
+      throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
+
+    return this._startSocket(sessionId, options, {}, () => async (update) => {
+      if (update.qr) {
+        this.callback.get(CALLBACK_KEY.ON_QR)?.({ sessionId, qr: update.qr });
+        options.onQRUpdated?.(update.qr);
+        if (options.printQR) {
+          QRCode.toString(update.qr, { type: "terminal", small: true }, (_err, qrcode) => {
+            console.log(sessionId + ":");
+            console.log(qrcode);
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Start a new WhatsApp session authenticated via stable pairing code instead of QR scan.
+   * */
+  async startSessionWithPairingCode(
+    sessionId: string,
+    options: StartSessionWithPairingCodeOptions
+  ): Promise<WASocket> {
+    if (await this.isSessionExistAndRunning(sessionId))
+      throw new WhatsappError(Messages.sessionAlreadyExist(sessionId));
+
+    return this._startSocket(
+      sessionId,
+      options,
+      { printQRInTerminal: false },
+      () => {
+        // Flag is fresh per retry (factory is called anew each startSocket invocation).
+        let isPairingCodeRequested = false;
+        return async (update, sock) => {
+          if (
+            !sock.authState.creds.registered &&
+            (update.connection === "connecting" || !!update.qr) &&
+            !isPairingCodeRequested
+          ) {
+            isPairingCodeRequested = true;
+            await createDelay(2000);
+            try {
+              const code = await sock.requestPairingCode(options.phoneNumber);
+              this.callback.get(CALLBACK_KEY.ON_PAIRING_CODE)?.(sessionId, code);
+              options.onPairingCode?.(code);
+            } catch (error) {
+              console.log("Error Requesting Pairing Code", error);
+              isPairingCodeRequested = false;
+            }
+          }
+        };
+      }
+    );
   }
 
   /**
