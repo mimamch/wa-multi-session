@@ -29,6 +29,7 @@ export const sendTextMessage = async ({
     to,
     {
       text: text,
+      linkPreview: null,
     },
     {
       quoted: props.answering,
