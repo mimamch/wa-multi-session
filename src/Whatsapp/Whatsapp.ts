@@ -520,6 +520,7 @@ export class Whatsapp {
       to,
       {
         text: props.text,
+        linkPreview: null,
       },
       {
         quoted: props.answering,
