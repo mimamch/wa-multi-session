@@ -62,14 +62,27 @@ const session = await whatsapp.startSession("session1", {
 // Then, scan QR on terminal
 ```
 
-or Start Session with Pairing Code (Phone Number) (Experimental)
+or Start Session with Pairing Code (Phone Number)
 
 ```ts
+// Option 1: per-session callback
 const session = await whatsapp.startSessionWithPairingCode("mysessionid", {
   phoneNumber: "6281234567890",
-  onPairingCode(code) {
-    console.log(`Pairing Code: ${code}`);
+  onPairingCode: (code) => {
+    console.log("Enter this code in WhatsApp → Linked Devices:", code);
   },
+  onConnected: () => console.log("Connected!"),
+});
+
+// Option 2: global callback on the Whatsapp instance
+const whatsapp = new Whatsapp({
+  adapter: new SQLiteAdapter(),
+  onPairingCode: (sessionId, code) => {
+    console.log(`[${sessionId}] Pairing code: ${code}`);
+  },
+});
+await whatsapp.startSessionWithPairingCode("mysessionid", {
+  phoneNumber: "6281234567890",
 });
 ```
 
