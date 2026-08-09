@@ -107,3 +107,24 @@ export type MessageUpdated = WAMessageUpdate & {
     | "read"
     | "played";
 };
+
+/**
+ * Options for starting a WhatsApp session via pairing code instead of QR scan.
+ * Use this when the device cannot display a QR code (e.g., headless servers).
+ */
+export interface StartSessionWithPairingCodeOptions {
+  /** The phone number linked to the WhatsApp account, in international format without '+' (e.g. "628123456789"). */
+  phoneNumber: string;
+  /** Called with the 8-character pairing code once it is retrieved from WhatsApp. Display this to the user so they can enter it in the WhatsApp app. */
+  onPairingCode?: (code: string) => void;
+  /** Called when the session successfully connects to WhatsApp. */
+  onConnected?: () => void;
+  /** Called when the session begins the connection handshake. */
+  onConnecting?: () => void;
+  /** Called when the session is permanently disconnected (logged out or max retries exceeded). */
+  onDisconnected?: () => void;
+  /** Called for each incoming message in this session. */
+  onMessageReceived?: (message: MessageReceived) => void;
+  /** Called when a sent message's delivery/read status changes. */
+  onMessageUpdated?: (message: MessageUpdated) => void;
+}
